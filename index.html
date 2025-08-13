@@ -137,7 +137,8 @@
   </div>
 </main>
 
-<script>
+<script type="module">
+import { providerSlug } from './src/providerSlug.js';
 /*** 🔧 CONFIG — add your keys ***/
 const TMDB_KEY = "f653b3ff00c4561dfaebe995836a28e7";
 const OMDB_KEY = "84da1316"; // free 1k/day; upgrade if needed
@@ -271,27 +272,6 @@ function buildDiscoverURL(page=1){
 }
 
 // provider slug/class helper
-function providerSlug(name){
-  const n = name.toLowerCase();
-  if(n.includes('freevee')) return 'freevee';
-  if(n.includes('prime')||n.includes('amazon')) return 'prime';
-  if(n.includes('netflix')) return 'netflix';
-  if(n.includes('disney')) return 'disney';
-  if(n.includes('hulu')) return 'hulu';
-  if(n==="max"||n.includes('hbo')) return 'max';
-  if(n.includes('apple')) return 'appletv';
-  if(n.includes('paramount')) return 'paramount';
-  if(n.includes('peacock')) return 'peacock';
-  if(n.includes('starz')) return 'starz';
-  if(n.includes('showtime')) return 'showtime';
-  if(n.includes('amc')) return 'amc';
-  if(n.includes('criterion')) return 'criterion';
-  if(n.includes('tubi')) return 'tubi';
-  if(n.includes('pluto')) return 'pluto';
-  return '';
-}
-
-// pull external IDs → IMDb → OMDb ratings
 async function enrichWithRatings(items){
   const out = [];
   // cap to 12 items per batch for speed
