@@ -13,7 +13,6 @@
 <header>
   <div class="brand">
     <h1 class="title-text">📺 StreamPal</h1>
-    <button id="toggleSeen" class="btn secondary">Seen list</button>
   </div>
 </header>
 <main>
@@ -94,6 +93,7 @@
       Data © TMDb; watch-provider availability powered by TMDb’s JustWatch partnership. Ratings via OMDb (IMDb & Rotten Tomatoes when available).
     </div>
   </div>
+  <button id="toggleSeen" class="btn secondary seen-btn-fixed">Seen list</button>
 </main>
 
 <script type="module">
@@ -175,7 +175,10 @@ $("#findBtn").addEventListener("click", ()=> { state.pageCursor = 1; discover(fa
 $("#toggleSeen").addEventListener("click",()=>{
   const panel = $("#seenList");
   panel.hidden = !panel.hidden;
-  if(!panel.hidden) renderSeenList();
+  if(!panel.hidden){
+    renderSeenList();
+    document.querySelector('#seenList').scrollIntoView({ behavior: 'smooth' });
+  }
 });
 $("#resetListsBtn").addEventListener("click",()=>{
   state.seen.clear();
