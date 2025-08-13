@@ -111,7 +111,10 @@ const state = {
   chosenProviders: new Set(),
   lastBatch: [],
   pageCursor: 1,
-  seen: new Set(JSON.parse(localStorage.getItem("seenIds")||"[]")),
+  seen: new Set(
+    (JSON.parse(localStorage.getItem("seenIds")||"[]"))
+      .map(x => typeof x === "string" ? x.replace(":", "-") : x)
+  ),
   kept: new Set(JSON.parse(localStorage.getItem("keptIds")||"[]"))
 };
 
@@ -142,7 +145,7 @@ async function renderSeenList(){
   grid.innerHTML = "";
   const ids = [...state.seen];
   for(const key of ids){
-    const [typ,id] = key.split(":");
+    const [typ,id] = key.split(/[-:]/);
     try{
       const t = await fetchJSON(`https://api.themoviedb.org/3/${typ}/${id}?api_key=${TMDB_KEY}&language=en-US`);
       t.genre_ids = (t.genres||[]).map(g=>g.id);
@@ -366,7 +369,7 @@ function card(t){
 
   seenBtn.addEventListener("click",()=>{
     const id = String(t.id);
-    const key = `${state.type}:${id}`;
+    const key = `${state.type}-${id}`;
     state.seen.add(key);
     saveSeen();
     if(state.kept.delete(id)) saveKept();
@@ -412,7 +415,7 @@ async function discover(nextPage=false){
     toast(nextPage?"Shuffling…":"Finding options…");
     const url = buildDiscoverURL(nextPage ? ++state.pageCursor : (state.pageCursor=1));
     const data = await fetchJSON(url);
-    let picks = (data.results || []).filter(p=>!state.seen.has(`${state.type}:${p.id}`) && !keptIdsOnPage.includes(String(p.id)));
+    let picks = (data.results || []).filter(p=>!state.seen.has(`${state.type}-${p.id}`) && !keptIdsOnPage.includes(String(p.id)));
     // enrich with ratings + provider badges
     picks = await enrichWithRatings(picks);
     // filter by IMDb threshold if available, else allow TMDb vote_average
