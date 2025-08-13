@@ -294,24 +294,26 @@ function providerSlug(name){
 // pull external IDs → imdb → OMDb ratings
 async function enrichWithRatings(items){
   const out = [];
-  // cap to 12 items per batch for speed
-  const batch = items.slice(0, 12);
-  for (const it of batch){
-    try{
-      const ext = await fetchJSON(`https://api.themoviedb.org/3/${state.type}/${it.id}/external_ids?api_key=${TMDB_KEY}`);
-      const imdb = ext.imdb_id;
-      let imdbRating=null, rtRating=null;
-      if(imdb && OMDB_KEY){
-        const om = await fetchJSON(`https://www.omdbapi.com/?apikey=${OMDB_KEY}&i=${imdb}&plot=short`);
-        if(om && om.Ratings){
-          (om.Ratings||[]).forEach(r=>{
-            if(r.Source==="Internet Movie Database") imdbRating = r.Value;
-            if(r.Source==="Rotten Tomatoes") rtRating = r.Value;
-          });
+  // process items in batches of 12 for speed
+  for (let i = 0; i < items.length; i += 12){
+    const batch = items.slice(i, i + 12);
+    for (const it of batch){
+      try{
+        const ext = await fetchJSON(`https://api.themoviedb.org/3/${state.type}/${it.id}/external_ids?api_key=${TMDB_KEY}`);
+        const imdb = ext.imdb_id;
+        let imdbRating=null, rtRating=null;
+        if(imdb && OMDB_KEY){
+          const om = await fetchJSON(`https://www.omdbapi.com/?apikey=${OMDB_KEY}&i=${imdb}&plot=short`);
+          if(om && om.Ratings){
+            (om.Ratings||[]).forEach(r=>{
+              if(r.Source==="Internet Movie Database") imdbRating = r.Value;
+              if(r.Source==="Rotten Tomatoes") rtRating = r.Value;
+            });
+          }
         }
-      }
-      out.push({...it, imdb_id: imdb || null, imdbRating, rtRating});
-    }catch(e){ out.push(it); }
+        out.push({...it, imdb_id: imdb || null, imdbRating, rtRating});
+      }catch(e){ out.push(it); }
+    }
   }
   return out;
 }
