@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>StreamPal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
+<style>
+  :root { --radius:14px; --pad:14px; --bg:#0f1115; --card:#171a21; --ink:#e8ecf1; --muted:#a9b4c0; --accent:#7cf; }
+  *{box-sizing:border-box;font-family:ui-sans-serif,system-ui,Segoe UI,Apple Color Emoji,Arial}
+  body{margin:0;background:linear-gradient(180deg,#0c0f13,#10131a 40%,#0f1115);color:var(--ink)}
+  header{padding:22px var(--pad); position:sticky; top:0; backdrop-filter: blur(10px); background:#0f1115cc; border-bottom:1px solid #222}
+  h1{margin:0;font-size:28px;letter-spacing:0.5px;font-family:'Bungee', system-ui;line-height:1}
+  .brand{display:flex;gap:10px;align-items:center}
+  .brand .title-text{background:linear-gradient(90deg,#7cf,#48c,#8ef); background-clip:text; -webkit-background-clip:text; color:transparent; text-shadow:0 2px 16px rgba(124,255,255,0.15)}
+  main{padding:18px;max-width:940px;margin:0 auto}
+  .panel{background:var(--card); border:1px solid #222; border-radius:var(--radius); padding:var(--pad); margin-bottom:16px}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .chip{padding:8px 12px; border:1px solid #2a2f39; border-radius:999px; cursor:pointer; user-select:none}
+  .chip input{display:none}
+  .chip.active{border-color:var(--accent); box-shadow:0 0 0 2px #7cf3 inset}
+  label{display:block;margin:8px 0 4px;font-weight:600;color:#dbe3ec}
+  select, input[type="range"], input[type="text"]{
+    width:100%; background:#0f1218; color:var(--ink); border:1px solid #2a2f39; border-radius:10px; padding:10px
+  }
+  button{appearance:none;border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer}
+  .btn{background:linear-gradient(135deg,#48c,#7cf); color:#02111f}
+  .btn.secondary{background:#1e2430;color:#cfe7ff;border:1px solid #2a323e}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px}
+  .card{background:#0d1118;border:1px solid #202532;border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+  .poster{aspect-ratio:2/3;background:#0a0d12;object-fit:cover;width:100%}
+  .meta{padding:12px}
+  .title{font-weight:800;line-height:1.2;margin:0 0 6px}
+  .badges{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+  .badge{font-size:12px;padding:6px 8px;border:1px solid #2a2f39;border-radius:999px;color:#cfe3ff}
+  .provline{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+  .prov-badge{font-size:12px;padding:6px 10px;border-radius:999px;font-weight:800;border:1px solid transparent}
+  /* Brand color badges */
+  .prov-badge.netflix{background:#E50914; color:#fff}
+  .prov-badge.prime,.prov-badge.amazon{background:#00A8E1; color:#001}
+  .prov-badge.freevee{background:#A5E000; color:#081}
+  .prov-badge.disney{background:#113CCF; color:#fff}
+  .prov-badge.hulu{background:#1CE783; color:#021}
+  .prov-badge.max{background:#5B61F6; color:#fff}
+  .prov-badge.appletv{background:#a3aaae; color:#111}
+  .prov-badge.paramount{background:#0064FF; color:#fff}
+  .prov-badge.peacock{background:#1f1f1f; color:#fff; border-color:#444}
+  .prov-badge.starz{background:#0b0d10; color:#d4f7ff}
+  .prov-badge.showtime{background:#D0021B; color:#fff}
+  .prov-badge.amc{background:#00FFC2; color:#001}
+  .prov-badge.criterion{background:#E5B24C; color:#1a1200}
+  .prov-badge.tubi{background:#FF0049; color:#fff}
+  .prov-badge.pluto{background:#6D4AFF; color:#fff}
+  .ratings{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .sublabel{color:var(--muted);font-size:13px}
+  .footer{display:flex;gap:8px; padding:12px; border-top:1px solid #202532; align-items:center}
+  .disclaimer{font-size:12px;color:#98a7b7;line-height:1.4}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <h1 class="title-text">📺 StreamPal</h1>
+  </div>
+</header>
+<main>
+
+  <!-- Stepper -->
+  <div class="panel" id="questionnaire">
+    <div class="row" style="align-items:flex-end; gap:14px">
+      <div style="flex:1;min-width:180px">
+        <label>Movie or TV?</label>
+        <div class="row" id="typeChips">
+          <div class="chip active" data-value="movie">Movie</div>
+          <div class="chip" data-value="tv">TV</div>
+        </div>
+      </div>
+
+      <div style="flex:2;min-width:240px">
+        <label>Genres (pick a few)</label>
+        <div class="row" id="genreChips"></div>
+      </div>
+
+      <div style="flex:1;min-width:180px">
+        <label>Release window</label>
+        <select id="releaseWindow">
+          <option value="">Anything</option>
+          <option value="new">New (last 2 years)</option>
+          <option value="recent">2015–2021</option>
+          <option value="classic">Before 2015</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <div style="flex:2;min-width:240px">
+        <label>Streaming services (US)</label>
+        <div class="row" id="providerChips" style="max-height:112px; overflow:auto"></div>
+        <div class="sublabel">Tip: pick the services you actually subscribe to.</div>
+      </div>
+
+      <div style="flex:1;min-width:200px">
+        <label>Minimum community rating (IMDb)</label>
+        <input id="minImdb" type="range" min="0" max="9" step="0.5" value="6.5" oninput="minImdbOut.textContent=this.value">
+        <div class="sublabel">≥ <span id="minImdbOut">6.5</span>/10</div>
+      </div>
+
+      <div style="flex:1;min-width:200px">
+        <label>Vibe</label>
+        <select id="mood">
+          <option value="">Surprise us</option>
+          <option value="feelgood">Feel-good</option>
+          <option value="intense">Intense / thrilling</option>
+          <option value="smart">Smart / talky</option>
+          <option value="spooky">Spooky</option>
+          <option value="actiony">Action-packed</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:14px">
+      <button class="btn" id="findBtn">Find something to watch</button>
+      <button class="btn secondary" id="shuffleBtn" title="Show different matches">Roll again</button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results" class="grid"></div>
+  <div id="status" class="sublabel"></div>
+
+  <div class="panel">
+    <div class="disclaimer">
+      Data © TMDb; watch-provider availability powered by TMDb’s JustWatch partnership. Ratings via OMDb (IMDb & Rotten Tomatoes when available).
+    </div>
+  </div>
+</main>
+
+<script>
+/*** 🔧 CONFIG — add your keys ***/
+const TMDB_KEY = "f653b3ff00c4561dfaebe995836a28e7";
+const OMDB_KEY = "84da1316"; // free 1k/day; upgrade if needed
+
+const state = {
+  type: "movie",
+  genres: [],
+  genreMap: { movie: {}, tv: {} },
+  providersUS: [], // [{provider_id, provider_name}]
+  chosenProviders: new Set(),
+  lastBatch: [],
+  pageCursor: 1
+};
+
+// --- helpers
+const $ = (q) => document.querySelector(q);
+const el = (tag, props={}) => Object.assign(document.createElement(tag), props);
+function toast(msg){ $("#status").textContent = msg; setTimeout(()=>$("#status").textContent="", 4500); }
+function toggleChip(chip){
+  const v = chip.dataset.value;
+  chip.classList.toggle("active");
+  if(chip.parentElement.id === "genreChips"){
+    chip.classList.contains("active") ? state.genres.push(v) : state.genres = state.genres.filter(x=>x!==v);
+  } else if (chip.parentElement.id === "providerChips"){
+    chip.classList.contains("active") ? state.chosenProviders.add(v) : state.chosenProviders.delete(v);
+  } else if (chip.parentElement.id === "typeChips"){
+    [...chip.parentElement.children].forEach(c=>c.classList.remove("active"));
+    chip.classList.add("active");
+    state.type = v;
+    buildGenres(); // reload genre chips for this type
+  }
+}
+
+// --- initial UI wiring
+document.addEventListener("click",(e)=>{
+  if(e.target.classList.contains("chip")) toggleChip(e.target);
+});
+
+$("#shuffleBtn").addEventListener("click", ()=> discover(true));
+$("#findBtn").addEventListener("click", ()=> { state.pageCursor = 1; discover(false); });
+
+// --- fetch TMDb genres & providers
+async function fetchJSON(u){ const r = await fetch(u); if(!r.ok) throw new Error("HTTP " + r.status); return r.json(); }
+
+async function loadGenres(){
+  const [movieG, tvG] = await Promise.all([
+    fetchJSON(`https://api.themoviedb.org/3/genre/movie/list?api_key=${TMDB_KEY}&language=en-US`),
+    fetchJSON(`https://api.themoviedb.org/3/genre/tv/list?api_key=${TMDB_KEY}&language=en-US`)
+  ]);
+  state.genreMap.movie = Object.fromEntries(movieG.genres.map(g=>[String(g.id), g.name]));
+  state.genreMap.tv    = Object.fromEntries(tvG.genres.map(g=>[String(g.id), g.name]));
+  buildGenres();
+}
+
+function buildGenres(){
+  const box = $("#genreChips"); box.innerHTML="";
+  const map = state.genreMap[state.type];
+  Object.entries(map).forEach(([id,name])=>{
+    const c = el("div",{className:"chip", textContent:name}); c.dataset.value=id; box.appendChild(c);
+  });
+  state.genres = []; // reset when switching type
+}
+
+async function loadProvidersUS(){
+  // we’ll show subscription/free/ads services, US region
+  const [pMovies, pTv] = await Promise.all([
+    fetchJSON(`https://api.themoviedb.org/3/watch/providers/movie?api_key=${TMDB_KEY}&watch_region=US`),
+    fetchJSON(`https://api.themoviedb.org/3/watch/providers/tv?api_key=${TMDB_KEY}&watch_region=US`)
+  ]);
+  const seen = new Map();
+  [...pMovies.results, ...pTv.results].forEach(p=> { if(!seen.has(p.provider_id)) seen.set(p.provider_id, p.provider_name); });
+  state.providersUS = [...seen.entries()].map(([id,name])=>({provider_id:id, provider_name:name}))
+    .filter(p => /Netflix|Prime|Disney|Hulu|Max|Apple TV|Paramount|Peacock|STARZ|Showtime|AMC|Criterion|Freevee|Tubi|Pluto/i.test(p.provider_name))
+    .sort((a,b)=>a.provider_name.localeCompare(b.provider_name));
+  buildProviders();
+}
+function buildProviders(){
+  const box = $("#providerChips"); box.innerHTML="";
+  state.chosenProviders.clear();
+  state.providersUS.forEach(({provider_id,provider_name})=>{
+    const c = el("div",{className:"chip",textContent:provider_name}); c.dataset.value=String(provider_id); box.appendChild(c);
+  });
+}
+
+// --- discovery + enrichment
+function buildDiscoverURL(page=1){
+  const base = `https://api.themoviedb.org/3/discover/${state.type}?api_key=${TMDB_KEY}&language=en-US&include_adult=false&page=${page}`;
+  const params = new URLSearchParams();
+  // Streaming provider filter
+  if(state.chosenProviders.size){
+    // OR filter with pipes per TMDb docs; limit to subscription/ads/free
+    params.set("with_watch_providers", [...state.chosenProviders].join("|"));
+    params.set("watch_region","US");
+    params.set("with_watch_monetization_types","flatrate|ads|free");
+  }
+  // Genres
+  if(state.genres.length) params.set("with_genres", state.genres.join(","));
+
+  // Release window
+  const window = $("#releaseWindow").value;
+  const now = new Date();
+  const y = now.getFullYear();
+  const add = (k,v)=>params.set(k,v);
+  if(state.type==="movie"){
+    if(window==="new"){ add("primary_release_date.gte", `${y-2}-01-01`); }
+    else if(window==="recent"){ add("primary_release_date.gte","2015-01-01"); add("primary_release_date.lte","2021-12-31"); }
+    else if(window==="classic"){ add("primary_release_date.lte","2014-12-31"); }
+    // favor quality/popularity and real vote counts
+    add("sort_by","popularity.desc");
+    add("vote_count.gte","250");
+  } else {
+    if(window==="new"){ add("first_air_date.gte", `${y-2}-01-01`); }
+    else if(window==="recent"){ add("first_air_date.gte","2015-01-01"); add("first_air_date.lte","2021-12-31"); }
+    else if(window==="classic"){ add("first_air_date.lte","2014-12-31"); }
+    add("sort_by","popularity.desc");
+    add("vote_count.gte","100");
+  }
+
+  // Mood nudges via keywords/genres where possible
+  const mood = $("#mood").value;
+  const moodGenres = {
+    feelgood: ["35","10751"],      // Comedy, Family
+    intense:  ["53","28"],         // Thriller, Action
+    smart:    ["18","99"],         // Drama, Documentary
+    spooky:   ["27","9648"],       // Horror, Mystery
+    actiony:  ["28","878","12"]  // Action, Sci-Fi, Adventure
+  };
+  if(mood && !state.genres.length && moodGenres[mood]) params.set("with_genres", moodGenres[mood].join(","));
+
+  return base + "&" + params.toString();
+}
+
+// provider slug/class helper
+function providerSlug(name){
+  const n = name.toLowerCase();
+  if(n.includes('freevee')) return 'freevee';
+  if(n.includes('prime')||n.includes('amazon')) return 'prime';
+  if(n.includes('netflix')) return 'netflix';
+  if(n.includes('disney')) return 'disney';
+  if(n.includes('hulu')) return 'hulu';
+  if(n==="max"||n.includes('hbo')) return 'max';
+  if(n.includes('apple')) return 'appletv';
+  if(n.includes('paramount')) return 'paramount';
+  if(n.includes('peacock')) return 'peacock';
+  if(n.includes('starz')) return 'starz';
+  if(n.includes('showtime')) return 'showtime';
+  if(n.includes('amc')) return 'amc';
+  if(n.includes('criterion')) return 'criterion';
+  if(n.includes('tubi')) return 'tubi';
+  if(n.includes('pluto')) return 'pluto';
+  return '';
+}
+
+// pull external IDs → imdb → OMDb ratings
+async function enrichWithRatings(items){
+  const out = [];
+  // cap to 12 items per batch for speed
+  const batch = items.slice(0, 12);
+  for (const it of batch){
+    try{
+      const ext = await fetchJSON(`https://api.themoviedb.org/3/${state.type}/${it.id}/external_ids?api_key=${TMDB_KEY}`);
+      const imdb = ext.imdb_id;
+      let imdbRating=null, rtRating=null;
+      if(imdb && OMDB_KEY){
+        const om = await fetchJSON(`https://www.omdbapi.com/?apikey=${OMDB_KEY}&i=${imdb}&plot=short`);
+        if(om && om.Ratings){
+          (om.Ratings||[]).forEach(r=>{
+            if(r.Source==="Internet Movie Database") imdbRating = r.Value;
+            if(r.Source==="Rotten Tomatoes") rtRating = r.Value;
+          });
+        }
+      }
+      out.push({...it, imdb_id: imdb || null, imdbRating, rtRating});
+    }catch(e){ out.push(it); }
+  }
+  return out;
+}
+
+function card(t){
+  const title = t.title || t.name;
+  const year = (t.release_date||t.first_air_date||"").slice(0,4);
+  const poster = t.poster_path ? `https://image.tmdb.org/t/p/w500${t.poster_path}` : "";
+  const gmap = state.genreMap[state.type];
+  const g = (t.genre_ids||[]).slice(0,3).map(id=>gmap[String(id)]).filter(Boolean);
+  const rt = t.rtRating ? `🍅 ${t.rtRating}` : "";
+  const imdb = t.imdbRating ? `IMDb ${t.imdbRating}` : (t.vote_average ? `TMDb ${t.vote_average.toFixed(1)}/10` : "");
+  const btn = el("a",{textContent:"Details",href:`https://www.themoviedb.org/${state.type}/${t.id}`,target:"_blank",className:"btn",style:"text-align:center;text-decoration:none"});
+
+  // provider badges HTML
+  const provHTML = (t._providers||[]).map(p=>`<span class="prov-badge ${providerSlug(p)}">${p}</span>`).join("");
+
+  const wrap = el("div",{className:"card"});
+  wrap.innerHTML = `
+    <img class="poster" alt="" src="${poster}">
+    <div class="meta">
+      <div class="title">${title} ${year?`<span class="sublabel">(${year})</span>`:""}</div>
+      <div class="sublabel">${t.overview?.slice(0,180) ?? ""}${(t.overview||"").length>180?"…":""}</div>
+      <div class="badges">
+        ${g.map(x=>`<span class="badge">${x}</span>`).join("")}
+      </div>
+      ${provHTML?`<div class="provline">${provHTML}</div>`:""}
+      <div class="ratings">
+        ${imdb?`<span class="badge">${imdb}</span>`:""}
+        ${rt?`<span class="badge">${rt}</span>`:""}
+      </div>
+    </div>
+    <div class="footer"></div>
+  `;
+  wrap.querySelector(".footer").appendChild(btn);
+  return wrap;
+}
+
+async function attachProviders(items){
+  // For each title, grab providers in US and show subscription/free badges
+  for(const it of items){
+    try{
+      const pv = await fetchJSON(`https://api.themoviedb.org/3/${state.type}/${it.id}/watch/providers?api_key=${TMDB_KEY}`);
+      const us = pv.results?.US;
+      const names = new Set();
+      ["flatrate","ads","free"].forEach(k => (us?.[k]||[]).forEach(p=>names.add(p.provider_name)));
+      it._providers = [...names].slice(0,3);
+    }catch(e){}
+  }
+  return items;
+}
+
+async function discover(nextPage=false){
+  try{
+    $("#results").innerHTML = "";
+    toast(nextPage?"Shuffling…":"Finding options…");
+    const url = buildDiscoverURL(nextPage ? ++state.pageCursor : (state.pageCursor=1));
+    const data = await fetchJSON(url);
+    let picks = (data.results || []);
+    // enrich with ratings + provider badges
+    picks = await enrichWithRatings(picks);
+    // filter by IMDb threshold if available, else allow TMDb vote_average
+    const min = parseFloat($("#minImdb").value);
+    picks = picks.filter(p=>{
+      const imdb = p.imdbRating ? parseFloat(p.imdbRating) : null;
+      const tmdb = p.vote_average || 0;
+      return (imdb && imdb >= min) || (!imdb && tmdb >= (min+0.5)); // slight grace if OMDb missing
+    });
+    picks = await attachProviders(picks);
+    state.lastBatch = picks;
+    if(!picks.length){ toast("No matches—try lowering the rating or adding providers."); return; }
+    const grid = $("#results");
+    picks.slice(0,8).forEach(p => grid.appendChild(card(p)));
+    toast(`Showing ${Math.min(8,picks.length)} of ${picks.length} matches`);
+  }catch(e){
+    toast("Oops—API error. Check keys and try again.");
+    console.error(e);
+  }
+}
+
+// boot
+(async function init(){
+  await Promise.all([loadGenres(), loadProvidersUS()]);
+})();
+</script>
+</body>
+</html>
