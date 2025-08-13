@@ -17,15 +17,15 @@ select, input[type="range"], input[type="text"]{width:100%; background:#0f1218; 
 button{appearance:none;border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer}
 .btn{background:linear-gradient(135deg,#48c,#7cf); color:#02111f}
 .btn.secondary{background:#1e2430;color:#cfe7ff;border:1px solid #2a323e}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px}
+.grid{display:grid;grid-template-columns:1fr;gap:14px}
 .card{background:#0d1118;border:1px solid #202532;border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
 .poster{aspect-ratio:2/3;background:#0a0d12;object-fit:cover;width:100%}
-.meta{padding:12px}
-.title{font-weight:800;line-height:1.2;margin:0 0 6px}
+.meta{padding:8px}
+.title{font-weight:800;line-height:1.2;margin:0 0 6px;font-size:16px}
 .badges{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
-.badge{font-size:12px;padding:6px 8px;border:1px solid #2a2f39;border-radius:999px;color:#cfe3ff}
+.badge{font-size:11px;padding:6px 8px;border:1px solid #2a2f39;border-radius:999px;color:#cfe3ff}
 .provline{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
-.prov-badge{font-size:12px;padding:6px 10px;border-radius:999px;font-weight:800;border:1px solid transparent}
+.prov-badge{font-size:11px;padding:6px 10px;border-radius:999px;font-weight:800;border:1px solid transparent}
 .prov-badge.netflix{background:#E50914; color:#fff}
 .prov-badge.prime,.prov-badge.amazon{background:#00A8E1; color:#001}
 .prov-badge.freevee{background:#A5E000; color:#081}
@@ -49,11 +49,21 @@ button{appearance:none;border:0;border-radius:12px;padding:12px 16px;font-weight
   body{font-size:14px;}
   :root{--pad:10px; --header-pad:16px; --header-height:60px;}
 }
+@media (min-width:640px){
+  .grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));}
+  .meta{padding:12px;}
+  .title{font-size:18px;}
+  .badge,.prov-badge{font-size:12px;}
+}
 @media (min-width: 1024px){
   body{font-size:18px;}
   :root{--pad:20px; --header-pad:28px; --header-height:88px;}
   .layout{display:flex;gap:20px;}
   .layout #questionnaire{flex:0 0 30%;}
   .layout #results{flex:1;}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));}
+  .meta{padding:16px;}
+  .title{font-size:20px;}
+  .badge,.prov-badge{font-size:14px;}
 }
 
