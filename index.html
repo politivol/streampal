@@ -311,9 +311,12 @@ async function enrichWithRatings(items){
         }
       }
       out.push({...it, imdb_id: imdb || null, imdbRating, rtRating});
-    }catch(e){ out.push(it); }
+    }catch(e){
+      out.push(it);
+    }
   }
-  return out;
+  // return enriched items followed by any remaining originals
+  return out.concat(items.slice(12));
 }
 
 function card(t){
