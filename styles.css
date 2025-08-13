@@ -8,7 +8,8 @@ h1{margin:0;font-size:28px;letter-spacing:0.5px;font-family:'Bungee', system-ui;
 main{padding:var(--pad);max-width:940px;margin:0 auto}
 .panel{background:var(--card); border:1px solid #222; border-radius:var(--radius); padding:var(--pad); margin-bottom:16px}
 .layout{display:block}
-.drawer{position:fixed;top:var(--header-height);left:0;bottom:0;width:80%;max-width:320px;background:var(--bg);transform:translateX(-100%);transition:transform .3s ease;z-index:1000;overflow:auto;padding:var(--pad)}
+.drawer{position:fixed;top:var(--header-height);bottom:0;width:80%;max-width:320px;background:var(--bg);transition:transform .3s ease;z-index:1000;overflow:auto;padding:var(--pad);left:0;transform:translateX(-100%)}
+.drawer.drawer--seen{left:auto;right:0;transform:translateX(100%)}
 .drawer.drawer--open{transform:translateX(0)}
 .row{display:flex;gap:10px;flex-wrap:wrap}
 .row--inputs{align-items:flex-end;gap:14px}
@@ -24,10 +25,7 @@ button{appearance:none;border:0;border-radius:12px;padding:12px 16px;font-weight
 .btn{background:linear-gradient(135deg,#48c,#7cf); color:#02111f}
 .btn.secondary{background:#1e2430;color:#cfe7ff;border:1px solid #2a323e}
 .icon-btn{padding:8px 10px}
-.seen-btn-fixed{position:fixed;right:var(--pad);bottom:var(--pad)}
 .grid{display:grid;grid-template-columns:1fr;gap:14px}
-#seenList{display:none;}
-#seenList:not([hidden]){display:block;}
 #seenGrid{max-height:70vh;overflow:auto}
 .card{background:#0d1118;border:1px solid #202532;border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
 .card.seen{opacity:0.5}
@@ -74,8 +72,8 @@ button{appearance:none;border:0;border-radius:12px;padding:12px 16px;font-weight
 @media (min-width: 1024px){
   body{font-size:18px;}
   :root{--pad:20px; --header-pad:28px; --header-height:88px;}
-  #filtersBtn{display:none;}
-  .drawer{position:static;transform:none;width:auto;max-width:none;padding:0;}
+  #filtersBtn,#seenBtn{display:none;}
+  .drawer:not(.drawer--seen){position:static;transform:none;width:auto;max-width:none;padding:0;}
   .layout{display:flex;gap:20px;}
   .layout .drawer{flex:0 0 30%;}
   .layout #results{flex:1;}
