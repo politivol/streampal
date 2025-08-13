@@ -14,7 +14,10 @@
   <div class="brand">
     <h1 class="title-text">📺 StreamPal</h1>
   </div>
-  <button id="filtersBtn" class="btn secondary">Filters</button>
+  <div class="row">
+    <button id="filtersBtn" class="btn secondary">Filters</button>
+    <button id="seenBtn" class="btn secondary">Seen list</button>
+  </div>
 </header>
 <main>
 
@@ -83,12 +86,14 @@
     <!-- Results -->
     <div id="results" class="grid"></div>
   </div>
-  <div id="seenList" class="panel" hidden>
-    <div class="row row--actions">
-      <button class="btn secondary" id="resetListsBtn">Reset list</button>
+  <aside id="seenDrawer" class="drawer drawer--seen">
+    <div class="panel" id="seenList">
+      <div class="row row--actions">
+        <button class="btn secondary" id="resetListsBtn">Reset list</button>
+      </div>
+      <div id="seenGrid" class="grid"></div>
     </div>
-    <div id="seenGrid" class="grid"></div>
-  </div>
+  </aside>
   <div id="status" class="sublabel"></div>
 
   <div class="panel">
@@ -96,7 +101,6 @@
       Data © TMDb; watch-provider availability powered by TMDb’s JustWatch partnership. Ratings via OMDb (IMDb & Rotten Tomatoes when available).
     </div>
   </div>
-  <button id="toggleSeen" class="btn secondary seen-btn-fixed">Seen list</button>
 </main>
 
 <script type="module">
@@ -143,6 +147,47 @@ function toggleChip(chip){
 function saveSeen(){ localStorage.setItem("seenIds", JSON.stringify([...state.seen])); }
 function saveKept(){ localStorage.setItem("keptIds", JSON.stringify([...state.kept])); }
 
+let activeDrawer = null;
+function setupDrawer(drawerId, btnId, onOpen){
+  const drawer = $(drawerId);
+  const btn = $(btnId);
+  let focusables = [];
+  function trap(e){
+    if(e.key === 'Escape') return close();
+    if(e.key === 'Tab' && focusables.length){
+      const first = focusables[0];
+      const last = focusables[focusables.length-1];
+      if(e.shiftKey && document.activeElement === first){
+        e.preventDefault(); last.focus();
+      } else if(!e.shiftKey && document.activeElement === last){
+        e.preventDefault(); first.focus();
+      }
+    }
+  }
+  function open(){
+    if(activeDrawer && activeDrawer !== api) activeDrawer.close();
+    drawer.classList.add('drawer--open');
+    btn.setAttribute('aria-expanded','true');
+    onOpen && onOpen();
+    focusables = [...drawer.querySelectorAll('a,button,input,select,textarea,[tabindex]:not([tabindex="-1"])')];
+    if(focusables[0]) focusables[0].focus();
+    document.addEventListener('keydown',trap);
+    activeDrawer = api;
+  }
+  function close(){
+    drawer.classList.remove('drawer--open');
+    btn.setAttribute('aria-expanded','false');
+    document.removeEventListener('keydown',trap);
+    btn.focus();
+    if(activeDrawer === api) activeDrawer = null;
+  }
+  btn.addEventListener('click', () => {
+    drawer.classList.contains('drawer--open') ? close() : open();
+  });
+  const api = {open, close};
+  return api;
+}
+
 async function renderSeenList(){
   const grid = $("#seenGrid");
   grid.innerHTML = "";
@@ -173,30 +218,17 @@ document.addEventListener("click",(e)=>{
   if(e.target.classList.contains("chip")) toggleChip(e.target);
 });
 
-const drawer = $("#filterDrawer");
-const filtersBtn = $("#filtersBtn");
-filtersBtn.addEventListener("click", () => {
-  const open = drawer.classList.toggle("drawer--open");
-  if(!open) filtersBtn.focus();
-});
+const filterDrawerCtrl = setupDrawer("#filterDrawer", "#filtersBtn");
+const seenDrawerCtrl = setupDrawer("#seenDrawer", "#seenBtn", renderSeenList);
+
 $("#shuffleBtn").addEventListener("click", ()=> {
-  drawer.classList.remove("drawer--open");
+  filterDrawerCtrl.close();
   discover(true);
-  filtersBtn.focus();
 });
 $("#findBtn").addEventListener("click", ()=> {
-  drawer.classList.remove("drawer--open");
+  filterDrawerCtrl.close();
   state.pageCursor = 1;
   discover(false);
-  filtersBtn.focus();
-});
-$("#toggleSeen").addEventListener("click",()=>{
-  const panel = $("#seenList");
-  panel.hidden = !panel.hidden;
-  if(!panel.hidden){
-    renderSeenList();
-    document.querySelector('#seenList').scrollIntoView({ behavior: 'smooth' });
-  }
 });
 $("#resetListsBtn").addEventListener("click",()=>{
   state.seen.clear();
