@@ -20,7 +20,7 @@
   <div class="layout">
     <!-- Stepper -->
     <div class="panel" id="questionnaire">
-      <div class="row" style="align-items:flex-end; gap:14px">
+      <div class="row row--inputs">
         <div style="flex:1;min-width:180px">
           <label>Movie or TV?</label>
           <div class="row" id="typeChips">
@@ -45,10 +45,10 @@
         </div>
       </div>
 
-      <div class="row" style="margin-top:12px">
+      <div class="row row--inputs">
         <div style="flex:2;min-width:240px">
           <label>Streaming services (US)</label>
-          <div class="row" id="providerChips" style="max-height:112px; overflow:auto"></div>
+          <div class="row" id="providerChips"></div>
           <div class="sublabel">Tip: pick the services you actually subscribe to.</div>
         </div>
 
@@ -71,7 +71,7 @@
         </div>
       </div>
 
-      <div class="row" style="margin-top:14px">
+      <div class="row row--actions">
         <button class="btn" id="findBtn">Find something to watch</button>
         <button class="btn secondary" id="shuffleBtn" title="Show different matches">Roll again</button>
       </div>

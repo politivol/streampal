@@ -9,6 +9,10 @@ main{padding:var(--pad);max-width:940px;margin:0 auto}
 .panel{background:var(--card); border:1px solid #222; border-radius:var(--radius); padding:var(--pad); margin-bottom:16px}
 .layout{display:block}
 .row{display:flex;gap:10px;flex-wrap:wrap}
+.row--inputs{align-items:flex-end;gap:14px}
+.row--inputs + .row--inputs{margin-top:12px}
+.row--actions{margin-top:14px}
+#providerChips{max-height:112px;overflow:auto}
 .chip{padding:8px 12px; border:1px solid #2a2f39; border-radius:999px; cursor:pointer; user-select:none}
 .chip input{display:none}
 .chip.active{border-color:var(--accent); box-shadow:0 0 0 2px #7cf3 inset}
@@ -48,6 +52,9 @@ button{appearance:none;border:0;border-radius:12px;padding:12px 16px;font-weight
 @media (max-width: 640px){
   body{font-size:14px;}
   :root{--pad:10px; --header-pad:16px; --header-height:60px;}
+  .row--inputs{align-items:stretch}
+  .row--inputs>div{min-width:100%!important}
+  .row--actions{flex-direction:column;align-items:stretch}
 }
 @media (min-width:640px){
   .grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));}
