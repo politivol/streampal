@@ -23,6 +23,9 @@ button{appearance:none;border:0;border-radius:12px;padding:12px 16px;font-weight
 .btn.secondary{background:#1e2430;color:#cfe7ff;border:1px solid #2a323e}
 .icon-btn{padding:8px 10px}
 .grid{display:grid;grid-template-columns:1fr;gap:14px}
+#seenList{display:none;}
+#seenList:not([hidden]){display:block;}
+#seenGrid{max-height:70vh;overflow:auto}
 .card{background:#0d1118;border:1px solid #202532;border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
 .card.seen{opacity:0.5}
 .card.kept{border:2px solid gold}

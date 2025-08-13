@@ -13,6 +13,7 @@
 <header>
   <div class="brand">
     <h1 class="title-text">📺 StreamPal</h1>
+    <button id="toggleSeen" class="btn secondary">Seen list</button>
   </div>
 </header>
 <main>
@@ -80,6 +81,12 @@
     <!-- Results -->
     <div id="results" class="grid"></div>
   </div>
+  <div id="seenList" class="panel" hidden>
+    <div class="row row--actions">
+      <button class="btn secondary" id="resetListsBtn">Reset list</button>
+    </div>
+    <div id="seenGrid" class="grid"></div>
+  </div>
   <div id="status" class="sublabel"></div>
 
   <div class="panel">
@@ -130,6 +137,31 @@ function toggleChip(chip){
 function saveSeen(){ localStorage.setItem("seenIds", JSON.stringify([...state.seen])); }
 function saveKept(){ localStorage.setItem("keptIds", JSON.stringify([...state.kept])); }
 
+async function renderSeenList(){
+  const grid = $("#seenGrid");
+  grid.innerHTML = "";
+  const ids = [...state.seen];
+  for(const key of ids){
+    const [typ,id] = key.split(":");
+    try{
+      const t = await fetchJSON(`https://api.themoviedb.org/3/${typ}/${id}?api_key=${TMDB_KEY}&language=en-US`);
+      t.genre_ids = (t.genres||[]).map(g=>g.id);
+      const prev = state.type; state.type = typ;
+      const c = card(t);
+      state.type = prev;
+      const footer = c.querySelector('.footer');
+      const details = footer.querySelector('a');
+      footer.innerHTML='';
+      const rem = el('button',{className:'btn secondary',textContent:'Remove'});
+      rem.addEventListener('click',()=>{
+        state.seen.delete(key); saveSeen(); c.remove();
+      });
+      footer.append(rem, details);
+      grid.appendChild(c);
+    }catch(e){}
+  }
+}
+
 // --- initial UI wiring
 document.addEventListener("click",(e)=>{
   if(e.target.classList.contains("chip")) toggleChip(e.target);
@@ -137,6 +169,19 @@ document.addEventListener("click",(e)=>{
 
 $("#shuffleBtn").addEventListener("click", ()=> discover(true));
 $("#findBtn").addEventListener("click", ()=> { state.pageCursor = 1; discover(false); });
+$("#toggleSeen").addEventListener("click",()=>{
+  const panel = $("#seenList");
+  panel.hidden = !panel.hidden;
+  if(!panel.hidden) renderSeenList();
+});
+$("#resetListsBtn").addEventListener("click",()=>{
+  state.seen.clear();
+  state.kept.clear();
+  localStorage.removeItem("seenIds");
+  localStorage.removeItem("keptIds");
+  $("#seenGrid").innerHTML="";
+  $("#results").innerHTML="";
+});
 
 // --- fetch TMDb genres & providers
 async function fetchJSON(u){ const r = await fetch(u); if(!r.ok) throw new Error("HTTP " + r.status); return r.json(); }
@@ -321,7 +366,8 @@ function card(t){
 
   seenBtn.addEventListener("click",()=>{
     const id = String(t.id);
-    state.seen.add(id);
+    const key = `${state.type}:${id}`;
+    state.seen.add(key);
     saveSeen();
     if(state.kept.delete(id)) saveKept();
     wrap.classList.add("seen");
@@ -366,7 +412,7 @@ async function discover(nextPage=false){
     toast(nextPage?"Shuffling…":"Finding options…");
     const url = buildDiscoverURL(nextPage ? ++state.pageCursor : (state.pageCursor=1));
     const data = await fetchJSON(url);
-    let picks = (data.results || []).filter(p=>!state.seen.has(String(p.id)) && !keptIdsOnPage.includes(String(p.id)));
+    let picks = (data.results || []).filter(p=>!state.seen.has(`${state.type}:${p.id}`) && !keptIdsOnPage.includes(String(p.id)));
     // enrich with ratings + provider badges
     picks = await enrichWithRatings(picks);
     // filter by IMDb threshold if available, else allow TMDb vote_average
