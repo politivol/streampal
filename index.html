@@ -17,67 +17,69 @@
 </header>
 <main>
 
-  <!-- Stepper -->
-  <div class="panel" id="questionnaire">
-    <div class="row" style="align-items:flex-end; gap:14px">
-      <div style="flex:1;min-width:180px">
-        <label>Movie or TV?</label>
-        <div class="row" id="typeChips">
-          <div class="chip active" data-value="movie">Movie</div>
-          <div class="chip" data-value="tv">TV</div>
+  <div class="layout">
+    <!-- Stepper -->
+    <div class="panel" id="questionnaire">
+      <div class="row" style="align-items:flex-end; gap:14px">
+        <div style="flex:1;min-width:180px">
+          <label>Movie or TV?</label>
+          <div class="row" id="typeChips">
+            <div class="chip active" data-value="movie">Movie</div>
+            <div class="chip" data-value="tv">TV</div>
+          </div>
+        </div>
+
+        <div style="flex:2;min-width:240px">
+          <label>Genres (pick a few)</label>
+          <div class="row" id="genreChips"></div>
+        </div>
+
+        <div style="flex:1;min-width:180px">
+          <label>Release window</label>
+          <select id="releaseWindow">
+            <option value="">Anything</option>
+            <option value="new">New (last 2 years)</option>
+            <option value="recent">2015–2021</option>
+            <option value="classic">Before 2015</option>
+          </select>
         </div>
       </div>
 
-      <div style="flex:2;min-width:240px">
-        <label>Genres (pick a few)</label>
-        <div class="row" id="genreChips"></div>
+      <div class="row" style="margin-top:12px">
+        <div style="flex:2;min-width:240px">
+          <label>Streaming services (US)</label>
+          <div class="row" id="providerChips" style="max-height:112px; overflow:auto"></div>
+          <div class="sublabel">Tip: pick the services you actually subscribe to.</div>
+        </div>
+
+        <div style="flex:1;min-width:200px">
+          <label>Minimum community rating (IMDb)</label>
+          <input id="minImdb" type="range" min="0" max="9" step="0.5" value="6.5" oninput="minImdbOut.textContent=this.value">
+          <div class="sublabel">≥ <span id="minImdbOut">6.5</span>/10</div>
+        </div>
+
+        <div style="flex:1;min-width:200px">
+          <label>Vibe</label>
+          <select id="mood">
+            <option value="">Surprise us</option>
+            <option value="feelgood">Feel-good</option>
+            <option value="intense">Intense / thrilling</option>
+            <option value="smart">Smart / talky</option>
+            <option value="spooky">Spooky</option>
+            <option value="actiony">Action-packed</option>
+          </select>
+        </div>
       </div>
 
-      <div style="flex:1;min-width:180px">
-        <label>Release window</label>
-        <select id="releaseWindow">
-          <option value="">Anything</option>
-          <option value="new">New (last 2 years)</option>
-          <option value="recent">2015–2021</option>
-          <option value="classic">Before 2015</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="row" style="margin-top:12px">
-      <div style="flex:2;min-width:240px">
-        <label>Streaming services (US)</label>
-        <div class="row" id="providerChips" style="max-height:112px; overflow:auto"></div>
-        <div class="sublabel">Tip: pick the services you actually subscribe to.</div>
-      </div>
-
-      <div style="flex:1;min-width:200px">
-        <label>Minimum community rating (IMDb)</label>
-        <input id="minImdb" type="range" min="0" max="9" step="0.5" value="6.5" oninput="minImdbOut.textContent=this.value">
-        <div class="sublabel">≥ <span id="minImdbOut">6.5</span>/10</div>
-      </div>
-
-      <div style="flex:1;min-width:200px">
-        <label>Vibe</label>
-        <select id="mood">
-          <option value="">Surprise us</option>
-          <option value="feelgood">Feel-good</option>
-          <option value="intense">Intense / thrilling</option>
-          <option value="smart">Smart / talky</option>
-          <option value="spooky">Spooky</option>
-          <option value="actiony">Action-packed</option>
-        </select>
+      <div class="row" style="margin-top:14px">
+        <button class="btn" id="findBtn">Find something to watch</button>
+        <button class="btn secondary" id="shuffleBtn" title="Show different matches">Roll again</button>
       </div>
     </div>
 
-    <div class="row" style="margin-top:14px">
-      <button class="btn" id="findBtn">Find something to watch</button>
-      <button class="btn secondary" id="shuffleBtn" title="Show different matches">Roll again</button>
-    </div>
+    <!-- Results -->
+    <div id="results" class="grid"></div>
   </div>
-
-  <!-- Results -->
-  <div id="results" class="grid"></div>
   <div id="status" class="sublabel"></div>
 
   <div class="panel">
