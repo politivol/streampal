@@ -103,7 +103,9 @@ const state = {
   providersUS: [], // [{slug, provider_id, label}]
   chosenProviders: new Set(),
   lastBatch: [],
-  pageCursor: 1
+  pageCursor: 1,
+  seen: new Set(JSON.parse(localStorage.getItem("seenIds")||"[]")),
+  kept: new Set(JSON.parse(localStorage.getItem("keptIds")||"[]"))
 };
 
 // --- helpers
@@ -124,6 +126,9 @@ function toggleChip(chip){
     buildGenres(); // reload genre chips for this type
   }
 }
+
+function saveSeen(){ localStorage.setItem("seenIds", JSON.stringify([...state.seen])); }
+function saveKept(){ localStorage.setItem("keptIds", JSON.stringify([...state.kept])); }
 
 // --- initial UI wiring
 document.addEventListener("click",(e)=>{
@@ -285,12 +290,16 @@ function card(t){
   const g = (t.genre_ids||[]).slice(0,3).map(id=>gmap[String(id)]).filter(Boolean);
   const rt = t.rtRating ? `🍅 ${t.rtRating}` : "";
   const imdb = t.imdbRating ? `IMDb ${t.imdbRating}` : (t.vote_average ? `TMDb ${t.vote_average.toFixed(1)}/10` : "");
-  const btn = el("a",{textContent:"Details",href:`https://www.themoviedb.org/${state.type}/${t.id}`,target:"_blank",className:"btn",style:"text-align:center;text-decoration:none"});
+  const detailsBtn = el("a",{textContent:"Details",href:`https://www.themoviedb.org/${state.type}/${t.id}`,target:"_blank",className:"btn",style:"text-align:center;text-decoration:none"});
+  const seenBtn = el("button",{className:"btn secondary icon-btn",textContent:"✅",title:"Stream'd it!"});
+  const keepBtn = el("button",{className:"btn secondary icon-btn",textContent:"📌",title:"Keep it"});
 
   // provider badges HTML
   const provHTML = (t._providers||[]).map(p=>`<span class="prov-badge ${providerSlug(p)}">${p}</span>`).join("");
 
   const wrap = el("div",{className:"card"});
+  wrap.dataset.id = String(t.id);
+  if(state.kept.has(String(t.id))) wrap.classList.add("kept");
   wrap.innerHTML = `
     <img class="poster" alt="" src="${poster}">
     <div class="meta">
@@ -307,7 +316,29 @@ function card(t){
     </div>
     <div class="footer"></div>
   `;
-  wrap.querySelector(".footer").appendChild(btn);
+  const footer = wrap.querySelector(".footer");
+  footer.append(seenBtn, keepBtn, detailsBtn);
+
+  seenBtn.addEventListener("click",()=>{
+    const id = String(t.id);
+    state.seen.add(id);
+    saveSeen();
+    if(state.kept.delete(id)) saveKept();
+    wrap.classList.add("seen");
+    wrap.remove();
+  });
+
+  keepBtn.addEventListener("click",()=>{
+    const id = String(t.id);
+    if(state.kept.has(id)){
+      state.kept.delete(id);
+      wrap.classList.remove("kept");
+    } else {
+      state.kept.add(id);
+      wrap.classList.add("kept");
+    }
+    saveKept();
+  });
   return wrap;
 }
 
@@ -327,11 +358,15 @@ async function attachProviders(items){
 
 async function discover(nextPage=false){
   try{
-    $("#results").innerHTML = "";
+    const grid = $("#results");
+    const keptEls = [...grid.querySelectorAll(".card.kept")];
+    const keptIdsOnPage = keptEls.map(el=>el.dataset.id);
+    grid.innerHTML = "";
+    keptEls.forEach(el=>grid.appendChild(el));
     toast(nextPage?"Shuffling…":"Finding options…");
     const url = buildDiscoverURL(nextPage ? ++state.pageCursor : (state.pageCursor=1));
     const data = await fetchJSON(url);
-    let picks = (data.results || []);
+    let picks = (data.results || []).filter(p=>!state.seen.has(String(p.id)) && !keptIdsOnPage.includes(String(p.id)));
     // enrich with ratings + provider badges
     picks = await enrichWithRatings(picks);
     // filter by IMDb threshold if available, else allow TMDb vote_average
@@ -344,7 +379,6 @@ async function discover(nextPage=false){
     picks = await attachProviders(picks);
     state.lastBatch = picks;
     if(!picks.length){ toast("No matches—try lowering the rating or adding providers."); return; }
-    const grid = $("#results");
     picks.slice(0,8).forEach(p => grid.appendChild(card(p)));
     toast(`Showing ${Math.min(8,picks.length)} of ${picks.length} matches`);
   }catch(e){
