@@ -257,7 +257,7 @@ function buildDiscoverURL(page=1){
     add("vote_count.gte","100");
   }
 
-  // Mood nudges via keywords/genres where possible
+  // Mood nudges via genres where possible
   const mood = $("#mood").value;
   const moodGenres = {
     feelgood: ["35","10751"],      // Comedy, Family
