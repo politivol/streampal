@@ -89,36 +89,18 @@
   </div>
 </main>
 
-<script>
+<script type="module">
+import { providerSlug } from './src/providerSlug.js';
+
 /*** 🔧 CONFIG — add your keys ***/
 const TMDB_KEY = "f653b3ff00c4561dfaebe995836a28e7";
 const OMDB_KEY = "84da1316"; // free 1k/day; upgrade if needed
-
-function providerSlug(name) {
-  const n = name.toLowerCase();
-  if (n.includes('freevee')) return 'freevee';
-  if (n.includes('prime') || n.includes('amazon')) return 'prime';
-  if (n.includes('netflix')) return 'netflix';
-  if (n.includes('disney')) return 'disney';
-  if (n.includes('hulu')) return 'hulu';
-  if (n === 'max' || n.includes('hbo')) return 'max';
-  if (n.includes('apple')) return 'appletv';
-  if (n.includes('paramount')) return 'paramount';
-  if (n.includes('peacock')) return 'peacock';
-  if (n.includes('starz')) return 'starz';
-  if (n.includes('showtime')) return 'showtime';
-  if (n.includes('amc')) return 'amc';
-  if (n.includes('criterion')) return 'criterion';
-  if (n.includes('tubi')) return 'tubi';
-  if (n.includes('pluto')) return 'pluto';
-  return '';
-}
 
 const state = {
   type: "movie",
   genres: [],
   genreMap: { movie: {}, tv: {} },
-  providersUS: [], // [{provider_id, provider_name}]
+  providersUS: [], // [{slug, provider_id, label}]
   chosenProviders: new Set(),
   lastBatch: [],
   pageCursor: 1
@@ -179,18 +161,43 @@ async function loadProvidersUS(){
     fetchJSON(`https://api.themoviedb.org/3/watch/providers/movie?api_key=${TMDB_KEY}&watch_region=US`),
     fetchJSON(`https://api.themoviedb.org/3/watch/providers/tv?api_key=${TMDB_KEY}&watch_region=US`)
   ]);
-  const seen = new Map();
-  [...pMovies.results, ...pTv.results].forEach(p=> { if(!seen.has(p.provider_id)) seen.set(p.provider_id, p.provider_name); });
-  state.providersUS = [...seen.entries()].map(([id,name])=>({provider_id:id, provider_name:name}))
-    .filter(p => /Netflix|Prime|Disney|Hulu|Max|Apple TV|Paramount|Peacock|STARZ|Showtime|AMC|Criterion|Freevee|Tubi|Pluto/i.test(p.provider_name))
-    .sort((a,b)=>a.provider_name.localeCompare(b.provider_name));
+
+  const labels = {
+    netflix: 'Netflix',
+    prime: 'Prime Video',
+    disney: 'Disney+',
+    hulu: 'Hulu',
+    max: 'Max',
+    appletv: 'Apple TV+',
+    paramount: 'Paramount+',
+    peacock: 'Peacock',
+    starz: 'STARZ',
+    showtime: 'Showtime',
+    amc: 'AMC+',
+    criterion: 'Criterion Channel',
+    freevee: 'Freevee',
+    tubi: 'Tubi',
+    pluto: 'Pluto TV',
+  };
+
+  const seen = new Map(); // slug -> {slug, provider_id, label}
+  [...pMovies.results, ...pTv.results].forEach(p => {
+    const slug = providerSlug(p.provider_name);
+    if (!labels[slug]) return; // ignore providers we don't care about
+    if (!seen.has(slug)) {
+      seen.set(slug, { slug, provider_id: p.provider_id, label: labels[slug] });
+    }
+  });
+
+  state.providersUS = [...seen.values()].sort((a, b) => a.label.localeCompare(b.label));
   buildProviders();
 }
+
 function buildProviders(){
   const box = $("#providerChips"); box.innerHTML="";
   state.chosenProviders.clear();
-  state.providersUS.forEach(({provider_id,provider_name})=>{
-    const c = el("div",{className:"chip",textContent:provider_name}); c.dataset.value=String(provider_id); box.appendChild(c);
+  state.providersUS.forEach(({provider_id, label})=>{
+    const c = el("div",{className:"chip",textContent:label}); c.dataset.value=String(provider_id); box.appendChild(c);
   });
 }
 
