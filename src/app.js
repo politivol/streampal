@@ -109,7 +109,6 @@ export function initSearch(){
     if(!q) return;
     searchTitles(q);
   };
-  $("#searchBtn").addEventListener("click", go);
   input.addEventListener("keydown", e => { if(e.key === "Enter") go(); });
 }
 
