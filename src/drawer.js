@@ -7,6 +7,16 @@ export function setupDrawer(drawerId, btnId, onOpen) {
   const btn = $(btnId);
   let focusables = [];
 
+  function positionDrawer() {
+    const header = document.querySelector('header');
+    if (header && drawer) {
+      drawer.style.top = header.offsetHeight + 'px';
+    }
+  }
+
+  positionDrawer();
+  window.addEventListener('resize', positionDrawer);
+
   function trap(e) {
     if (e.key === 'Escape') return close();
     if (e.key === 'Tab' && focusables.length) {
