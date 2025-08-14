@@ -28,7 +28,8 @@ export function setupDrawer(drawerId, btnId, onOpen) {
     btn.setAttribute('aria-expanded', 'true');
     onOpen && onOpen();
     focusables = [...drawer.querySelectorAll('a,button,input,select,textarea,[tabindex]:not([tabindex="-1"])')];
-    if (focusables[0]) focusables[0].focus();
+    const isCoarsePointer = window.matchMedia ? window.matchMedia('(pointer: coarse)').matches : false;
+    if (focusables[0] && !isCoarsePointer) focusables[0].focus();
     document.addEventListener('keydown', trap);
     activeDrawer = api;
   }
