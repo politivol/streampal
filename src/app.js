@@ -102,6 +102,17 @@ export function initSeenList(){
   });
 }
 
+export function initSearch(){
+  const input = $("#searchInput");
+  const go = () => {
+    const q = input.value.trim();
+    if(!q) return;
+    searchTitles(q);
+  };
+  $("#searchBtn").addEventListener("click", go);
+  input.addEventListener("keydown", e => { if(e.key === "Enter") go(); });
+}
+
 async function loadGenres(){
   const [movieG, tvG] = await Promise.all([
     fetchJSON(`https://api.themoviedb.org/3/genre/movie/list?api_key=${TMDB_KEY}&language=en-US`),
@@ -232,6 +243,28 @@ async function attachProviders(items){
   return items;
 }
 
+async function searchTitles(query){
+  try{
+    const grid = $("#results");
+    const keptEls = [...grid.querySelectorAll('.card.kept')];
+    const keptIdsOnPage = keptEls.map(el=>el.dataset.id);
+    grid.innerHTML = "";
+    keptEls.forEach(el=>grid.appendChild(el));
+    toast("Searching…");
+    const url = `https://api.themoviedb.org/3/search/${state.type}?api_key=${TMDB_KEY}&language=en-US&include_adult=false&query=${encodeURIComponent(query)}`;
+    const data = await fetchJSON(url);
+    let picks = (data.results || []).filter(p=>!state.seen.has(`${state.type}-${p.id}`) && !keptIdsOnPage.includes(String(p.id)));
+    picks = await enrichWithRatings(picks);
+    picks = await attachProviders(picks);
+    if(!picks.length){ toast("No results found"); return; }
+    picks.slice(0,8).forEach(p => grid.appendChild(card(p, state, { saveSeen, saveKept })));
+    toast(`Found ${picks.length} results`);
+  }catch(e){
+    toast("Search failed");
+    console.error(e);
+  }
+}
+
 export async function discover(nextPage=false){
   try{
     const grid = $("#results");
@@ -264,6 +297,7 @@ export async function discover(nextPage=false){
 export async function init(){
   await initFilters();
   initSeenList();
+  initSearch();
 }
 
-export default { init, initFilters, initSeenList, discover };
+export default { init, initFilters, initSeenList, initSearch, discover };
