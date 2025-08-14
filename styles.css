@@ -4,6 +4,7 @@ body{margin:0;background:linear-gradient(180deg,#0c0f13,#10131a 40%,#0f1115);col
 header{padding:var(--header-pad) var(--pad); position:sticky; top:0; backdrop-filter: blur(10px); background:#0f1115cc; border-bottom:1px solid #222; min-height:var(--header-height);display:flex;align-items:center;justify-content:space-between}
 h1{margin:0;font-size:28px;letter-spacing:0.5px;font-family:'Bungee', system-ui;line-height:1}
 .brand{display:flex;align-items:center}
+.brand .logo{font-size:28px;margin-right:8px;line-height:1;font-family:system-ui,'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
 .brand .title-text{background:linear-gradient(90deg,#7cf,#48c,#8ef); background-clip:text; -webkit-background-clip:text; color:transparent; text-shadow:0 2px 16px rgba(124,255,255,0.15)}
 main{padding:var(--pad);max-width:940px;margin:0 auto}
 .panel{background:var(--card); border:1px solid #222; border-radius:var(--radius); padding:var(--pad); margin-bottom:16px}
