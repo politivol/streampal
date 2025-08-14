@@ -149,15 +149,10 @@ header{
   font-weight: 600;
   line-height: 1;
 }
-/* Mobile toggle hidden by default */
-.menu-toggle{ display: none; }
-
 /* ---- Mobile behavior ---- */
 @media (max-width: 720px){
-  .menu-toggle{ display: inline-flex; margin-left: auto; }
-  .header-nav{ display: none; width: 100%; order: 3; }
-  .header-actions{ order: 2; margin-left: 0; }
-  #siteHeader.open .header-nav{ display: block; }
+  .header-nav{ display: flex; width: 100%; order: 2; margin-left: 0; }
+  .header-actions{ order: 3; margin-left: 0; }
   .header-list{
     flex-direction: column;
     align-items: flex-start;

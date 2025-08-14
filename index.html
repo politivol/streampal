@@ -16,10 +16,6 @@
       <h1 class="header-title">📺 StreamPal</h1>
     </div>
 
-    <button class="btn menu-toggle" id="menuBtn" aria-controls="primaryNav" aria-expanded="false">
-      Menu
-    </button>
-
     <nav class="header-nav" id="primaryNav" aria-label="Primary">
       <input id="searchInput" type="search" placeholder="Search titles…" />
     </nav>
@@ -117,16 +113,6 @@
 <script type="module">
 import { init } from './src/app.js';
 init();
-</script>
-<script>
-  const header = document.getElementById('siteHeader');
-  const btn = document.getElementById('menuBtn');
-  if (btn) {
-    btn.addEventListener('click', () => {
-      const open = header.classList.toggle('open');
-      btn.setAttribute('aria-expanded', String(open));
-    });
-  }
 </script>
 </body>
 </html>
