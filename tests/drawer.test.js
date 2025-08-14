@@ -23,4 +23,17 @@ describe('setupDrawer', () => {
     ctrl.close();
     expect(drawer.classList.contains('drawer--open')).toBe(false);
   });
+
+  it('does not focus first element on coarse pointers', () => {
+    document.body.innerHTML = `
+      <button id="btn"></button>
+      <aside id="drawer" class="drawer"><input id="in" /></aside>
+    `;
+    const original = window.matchMedia;
+    window.matchMedia = () => ({ matches: true, addListener() {}, removeListener() {} });
+    const ctrl = setupDrawer('#drawer', '#btn');
+    ctrl.open();
+    expect(document.activeElement.id).not.toBe('in');
+    window.matchMedia = original;
+  });
 });
