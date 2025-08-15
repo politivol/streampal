@@ -316,7 +316,6 @@ export async function init(){
   await initFilters();
   initSeenList();
   initSearch();
-  await showTrending();
 }
 
 export default { init, initFilters, initSeenList, initSearch, discover };
