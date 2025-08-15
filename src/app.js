@@ -297,6 +297,24 @@ export async function init(){
   await initFilters();
   initSeenList();
   initSearch();
+
+  const btn = $("#filtersBtn");
+  if(!localStorage.getItem("filtersHintSeen")){
+    const clear = () => {
+      btn.classList.remove("filters-hint");
+      localStorage.setItem("filtersHintSeen","1");
+      btn.removeEventListener("click", clear);
+    };
+    btn.classList.add("filters-hint");
+    btn.addEventListener("click", clear);
+    if(filterDrawerCtrl && filterDrawerCtrl.open){
+      const origOpen = filterDrawerCtrl.open;
+      filterDrawerCtrl.open = (...args) => {
+        clear();
+        origOpen(...args);
+      };
+    }
+  }
 }
 
 export default { init, initFilters, initSeenList, initSearch, discover };
