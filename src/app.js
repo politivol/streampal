@@ -3,6 +3,7 @@ import { setupDrawer } from './drawer.js';
 import { fetchJSON } from './fetchJSON.js';
 import { card } from './card.js';
 import { providerSlug } from './providerSlug.js';
+import { StreamPalIcon } from './StreamPalIcon.js';
 
 /*** 🔧 CONFIG — add your keys ***/
 const TMDB_KEY = "f653b3ff00c4561dfaebe995836a28e7";
@@ -294,6 +295,12 @@ export async function discover(nextPage=false){
 }
 
 export async function init(){
+  const slot = document.getElementById("logo");
+  if (slot) {
+    const icon = StreamPalIcon({ size: 180 });
+    icon.classList.add("header-logo");
+    slot.appendChild(icon);
+  }
   await initFilters();
   initSeenList();
   initSearch();

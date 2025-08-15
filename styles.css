@@ -105,9 +105,17 @@ header{
   gap: .5rem;
   min-width: 12ch;
 }
-.header-brand img{
-  width: clamp(28px, 4vw, 40px);
+.header-logo{
+  width: clamp(120px, 20vw, 180px);
   height: auto;
+  color: #1E6CFB;
+  transition: filter .3s ease, transform .3s ease, color .3s ease;
+}
+
+.header-logo:hover{
+  filter: drop-shadow(0 0 .75rem #0bf);
+  transform: scale(1.05);
+  color: #5595ff;
 }
 .header-title{
   font-weight: 800;
