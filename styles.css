@@ -25,8 +25,6 @@ select, input[type="range"], input[type="text"]{width:100%; background:#0f1218; 
 button{appearance:none;border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer}
 .btn{background:linear-gradient(135deg,#48c,#7cf); color:#02111f}
 .btn.secondary{background:#1e2430;color:#cfe7ff;border:1px solid #2a323e}
-#filtersBtn.filters-hint{border-color:var(--accent);animation:filterPulse 1.5s ease-in-out infinite}
-@keyframes filterPulse{0%,100%{border-color:var(--accent);box-shadow:0 0 8px var(--accent)}50%{border-color:#48c;box-shadow:0 0 0 0 #48c}}
 .icon-btn{padding:8px 10px}
 .grid{display:grid;grid-template-columns:1fr;gap:14px}
 #seenGrid{max-height:70vh;overflow:auto}
