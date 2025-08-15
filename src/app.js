@@ -242,7 +242,25 @@ async function attachProviders(items){
   return items;
 }
 
+async function showTrending(){
+  try{
+    const grid = $("#results");
+    grid.innerHTML = "";
+    $("#resultsHeading").textContent = "Trending";
+    const url = `https://api.themoviedb.org/3/trending/${state.type}/week?api_key=${TMDB_KEY}`;
+    const data = await fetchJSON(url);
+    let picks = data.results || [];
+    picks = await enrichWithRatings(picks);
+    picks = await attachProviders(picks);
+    picks.slice(0,8).forEach(p => grid.appendChild(card(p, state, { saveSeen, saveKept })));
+  }catch(e){
+    toast("Failed to load trending titles");
+    console.error(e);
+  }
+}
+
 async function searchTitles(query){
+  $("#resultsHeading").textContent = "";
   try{
     const grid = $("#results");
     const keptEls = [...grid.querySelectorAll('.card.kept')];
@@ -265,6 +283,7 @@ async function searchTitles(query){
 }
 
 export async function discover(nextPage=false){
+  $("#resultsHeading").textContent = "";
   try{
     const grid = $("#results");
     const keptEls = [...grid.querySelectorAll(".card.kept")];
@@ -297,24 +316,6 @@ export async function init(){
   await initFilters();
   initSeenList();
   initSearch();
-
-  const btn = $("#filtersBtn");
-  if(!localStorage.getItem("filtersHintSeen")){
-    const clear = () => {
-      btn.classList.remove("filters-hint");
-      localStorage.setItem("filtersHintSeen","1");
-      btn.removeEventListener("click", clear);
-    };
-    btn.classList.add("filters-hint");
-    btn.addEventListener("click", clear);
-    if(filterDrawerCtrl && filterDrawerCtrl.open){
-      const origOpen = filterDrawerCtrl.open;
-      filterDrawerCtrl.open = (...args) => {
-        clear();
-        origOpen(...args);
-      };
-    }
-  }
 }
 
 export default { init, initFilters, initSeenList, initSearch, discover };
