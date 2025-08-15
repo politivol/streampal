@@ -106,26 +106,13 @@ header{
   min-width: 12ch;
 }
 .header-logo{
-  width: clamp(120px, 20vw, 180px);
-  height: auto;
-  color: #1E6CFB;
-  transition: filter .3s ease, transform .3s ease, color .3s ease;
+
 }
 
 .header-logo:hover{
   filter: drop-shadow(0 0 .75rem #0bf);
   transform: scale(1.05);
   color: #5595ff;
-}
-.header-title{
-  font-weight: 800;
-  font-size: clamp(1rem, 2.4vw, 1.3rem);
-  white-space: nowrap;
-  background:linear-gradient(90deg,#7cf,#48c,#8ef);
-  background-clip:text;
-  -webkit-background-clip:text;
-  color:transparent;
-  text-shadow:0 2px 16px rgba(124,255,255,0.15);
 }
 .header-nav{
   margin-left: auto;
