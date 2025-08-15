@@ -93,14 +93,6 @@ export async function initFilters(){
 
 export function initSeenList(){
   seenDrawerCtrl = setupDrawer("#seenDrawer", "#seenBtn", renderSeenList);
-  $("#resetListsBtn").addEventListener("click",()=>{
-    state.seen.clear();
-    state.kept.clear();
-    localStorage.removeItem("seenIds");
-    localStorage.removeItem("keptIds");
-    $("#seenGrid").innerHTML="";
-    $("#results").innerHTML="";
-  });
 }
 
 export function initSearch(){
