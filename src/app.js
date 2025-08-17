@@ -80,7 +80,6 @@ export async function initFilters(){
   filterDrawerCtrl = setupDrawer("#filterDrawer", "#filtersBtn");
 
   $("#shuffleBtn").addEventListener("click", ()=> {
-    filterDrawerCtrl.close();
     discover(true);
   });
   $("#findBtn").addEventListener("click", ()=> {
