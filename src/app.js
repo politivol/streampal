@@ -348,7 +348,8 @@ export async function discover(nextPage=false){
 export async function init(){
   const slot = document.getElementById("logo");
   if (slot) {
-    const icon = StreamPalIcon({ size: 180 });
+    // Smaller default icon size to better fit mobile headers
+    const icon = StreamPalIcon({ size: 120 });
     icon.classList.add("header-logo");
     slot.appendChild(icon);
   }

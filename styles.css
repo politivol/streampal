@@ -118,7 +118,8 @@ header{
   cursor: pointer;
 }
 .header-logo{
-  width: clamp(120px, 20vw, 180px);
+  /* Smaller logo for cleaner mobile layout */
+  width: clamp(80px, 16vw, 120px);
   height: auto;
   color: #1E6CFB;
   transition: filter .3s ease, transform .3s ease, color .3s ease;
@@ -132,7 +133,7 @@ header{
 }
 .header-title{
   font-weight: 800;
-  font-size: clamp(1rem, 2.4vw, 1.3rem);
+  font-size: clamp(0.9rem, 2.2vw, 1.2rem);
   white-space: nowrap;
   background:linear-gradient(90deg,#7cf,#48c,#8ef);
   background-clip:text;
