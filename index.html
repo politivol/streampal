@@ -82,14 +82,16 @@
 
         <div class="row row--actions">
           <button class="btn" id="findBtn">Find something to watch</button>
-          <button class="btn secondary" id="shuffleBtn" title="Show different matches">Roll again</button>
         </div>
       </div>
     </aside>
 
     <!-- Results -->
     <div id="resultsContainer">
-      <h2 id="resultsHeading">Trending</h2>
+      <div class="results-toolbar">
+        <h2 id="resultsHeading">Trending</h2>
+        <button class="btn secondary" id="shuffleBtn" title="Show different matches">Roll again</button>
+      </div>
       <div id="results" class="grid"></div>
     </div>
   </div>
