@@ -115,6 +115,7 @@ header{
   align-items: center;
   gap: .5rem;
   min-width: 12ch;
+  cursor: pointer;
 }
 .header-logo{
   width: clamp(120px, 20vw, 180px);
@@ -123,7 +124,8 @@ header{
   transition: filter .3s ease, transform .3s ease, color .3s ease;
 }
 
-.header-logo:hover{
+.header-brand:hover .header-logo,
+.header-brand:active .header-logo{
   filter: drop-shadow(0 0 .75rem #0bf);
   transform: scale(1.05);
   color: #5595ff;
@@ -137,6 +139,12 @@ header{
   -webkit-background-clip:text;
   color:transparent;
   text-shadow:0 2px 16px rgba(124,255,255,0.15);
+  transition: text-shadow .3s ease;
+}
+
+.header-brand:hover .header-title,
+.header-brand:active .header-title{
+  text-shadow:0 0 .75rem #0bf;
 }
 .header-nav{
   margin-left: auto;
