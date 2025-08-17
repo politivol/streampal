@@ -57,7 +57,7 @@ async function renderSeenList(){
       const t = await fetchJSON(`https://api.themoviedb.org/3/${typ}/${id}?api_key=${TMDB_KEY}&language=en-US`);
       t.genre_ids = (t.genres||[]).map(g=>g.id);
       const prev = state.type; state.type = typ;
-      const c = card(t, state, { saveSeen, saveKept });
+      const c = card(t, state, { saveSeen, saveKept, tmdbKey: TMDB_KEY });
       state.type = prev;
       const footer = c.querySelector('.footer');
       const details = footer.querySelector('a');
@@ -260,7 +260,7 @@ async function showTrending(){
     let picks = data.results || [];
     picks = await enrichWithRatings(picks);
     picks = await attachProviders(picks);
-    picks.slice(0,8).forEach(p => grid.appendChild(card(p, state, { saveSeen, saveKept })));
+    picks.slice(0,8).forEach(p => grid.appendChild(card(p, state, { saveSeen, saveKept, tmdbKey: TMDB_KEY })));
   }catch(e){
     toast("Failed to load trending titles");
     console.error(e);
@@ -282,7 +282,7 @@ async function searchTitles(query){
     picks = await enrichWithRatings(picks);
     picks = await attachProviders(picks);
     if(!picks.length){ toast("No results found"); return; }
-    picks.slice(0,8).forEach(p => grid.appendChild(card(p, state, { saveSeen, saveKept })));
+    picks.slice(0,8).forEach(p => grid.appendChild(card(p, state, { saveSeen, saveKept, tmdbKey: TMDB_KEY })));
     toast(`Found ${picks.length} results`);
   }catch(e){
     toast("Search failed");
@@ -338,7 +338,7 @@ export async function discover(nextPage=false){
     picks = await attachProviders(picks);
     state.lastBatch = picks;
     if(!picks.length){ toast("No matches—try lowering the rating or adding providers."); return; }
-    picks.slice(0,8).forEach(p => grid.appendChild(card(p, state, { saveSeen, saveKept })));
+    picks.slice(0,8).forEach(p => grid.appendChild(card(p, state, { saveSeen, saveKept, tmdbKey: TMDB_KEY })));
     toast(`Showing ${Math.min(8,picks.length)} of ${picks.length} matches`);
   }catch(e){
     toast("Oops—API error. Check keys and try again.");
