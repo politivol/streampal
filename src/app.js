@@ -37,6 +37,7 @@ function toggleChip(chip){
     chip.classList.add("active");
     state.type = v;
     buildGenres(); // reload genre chips for this type
+    updateSeriesFilter();
   }
 }
 
@@ -89,6 +90,7 @@ export async function initFilters(){
   });
 
   await Promise.all([loadGenres(), loadProvidersUS()]);
+  updateSeriesFilter();
 }
 
 export function initSeenList(){
@@ -122,6 +124,21 @@ function buildGenres(){
     const c = el("div",{className:"chip", textContent:name}); c.dataset.value=id; box.appendChild(c);
   });
   state.genres = []; // reset when switching type
+}
+
+function updateSeriesFilter(){
+  const sel = $("#seriesType");
+  if(!sel) return;
+  sel.innerHTML = "";
+  const optSurprise = el("option",{value:"",textContent:"Surprise Me!"});
+  sel.appendChild(optSurprise);
+  if(state.type === "movie"){
+    sel.appendChild(el("option",{value:"series",textContent:"Part of a series of movies"}));
+    sel.appendChild(el("option",{value:"standalone",textContent:"Standalone movie"}));
+  } else {
+    sel.appendChild(el("option",{value:"series",textContent:"Multiple seasons"}));
+    sel.appendChild(el("option",{value:"standalone",textContent:"One season show"}));
+  }
 }
 
 async function loadProvidersUS(){
@@ -192,19 +209,17 @@ function buildDiscoverURL(page=1){
       params.set("primary_release_date.lte", "2014-12-31");
     }
   }
-  const mood = $("#mood").value;
-  if(mood) params.set("with_keywords", mood);
   return `${base}&${params.toString()}`;
 }
 
 async function enrichWithRatings(items){
   const out = [];
   const needOmdb = items.slice(0,12);
-  const ids = needOmdb.map(it=>it.id);
-  const omdbMap = {};
   for(const it of needOmdb){
     try{
       const imdbIdRes = await fetchJSON(`https://api.themoviedb.org/3/${state.type}/${it.id}?api_key=${TMDB_KEY}`);
+      if(typeof imdbIdRes.belongs_to_collection !== 'undefined') it.belongs_to_collection = imdbIdRes.belongs_to_collection;
+      if(typeof imdbIdRes.number_of_seasons !== 'undefined') it.number_of_seasons = imdbIdRes.number_of_seasons;
       const imdb = imdbIdRes.imdb_id;
       if(imdb){
         const om = await fetchJSON(`https://www.omdbapi.com/?i=${imdb}&apikey=${OMDB_KEY}`);
@@ -288,6 +303,32 @@ export async function discover(nextPage=false){
     const data = await fetchJSON(url);
     let picks = (data.results || []).filter(p=>!state.seen.has(`${state.type}-${p.id}`) && !keptIdsOnPage.includes(String(p.id)));
     picks = await enrichWithRatings(picks);
+    const seriesChoice = $("#seriesType").value;
+    if(seriesChoice){
+      if(state.type === "movie"){
+        picks = picks.filter(p => seriesChoice === "series" ? p.belongs_to_collection : !p.belongs_to_collection);
+        if(seriesChoice === "series"){
+          const groups = {};
+          picks.forEach(p => {
+            const colId = p.belongs_to_collection?.id;
+            if(!colId) return;
+            if(!groups[colId]) groups[colId] = [];
+            groups[colId].push(p);
+          });
+          picks = Object.values(groups).flatMap(arr => arr.sort((a,b)=>{
+            return new Date(a.release_date||0) - new Date(b.release_date||0);
+          }));
+        } else {
+          picks.sort((a,b)=> new Date(a.release_date||0) - new Date(b.release_date||0));
+        }
+      } else {
+        picks = picks.filter(p => {
+          const seasons = p.number_of_seasons || 0;
+          return seriesChoice === "series" ? seasons > 1 : seasons <= 1;
+        });
+        picks.sort((a,b)=> new Date(a.first_air_date||0) - new Date(b.first_air_date||0));
+      }
+    }
     const min = parseFloat($("#minImdb").value);
     picks = picks.filter(p=>{
       const imdb = p.imdbRating ? parseFloat(p.imdbRating) : null;
