@@ -1,118 +1,12 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>StreamPal</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
-</head>
-<body>
-<header id="siteHeader">
-    <div class="header-bar">
-      <div class="header-brand">
-        <span id="logo"></span>
-        <h1 class="header-title">StreamPal</h1>
-      </div>
-
-    <nav class="header-nav" id="primaryNav" aria-label="Primary">
-      <input id="searchInput" type="search" placeholder="🔍 movies/shows" />
-    </nav>
-
-    <div class="header-actions">
-      <button id="filtersBtn" class="btn secondary">Filters</button>
-      <button id="seenBtn" class="btn secondary">Seen list</button>
-    </div>
-  </div>
-</header>
-<main>
-
-  <div class="layout">
-    <!-- Stepper -->
-    <aside id="filterDrawer" class="drawer">
-      <div class="panel" id="questionnaire">
-      <div class="row row--inputs">
-        <div style="flex:1;min-width:180px">
-          <label>Movie or TV?</label>
-          <div class="row" id="typeChips">
-            <div class="chip active" data-value="movie">Movie</div>
-            <div class="chip" data-value="tv">TV</div>
-          </div>
-        </div>
-
-        <div style="flex:2;min-width:240px">
-          <label>Genres (pick a few)</label>
-          <div class="row" id="genreChips"></div>
-        </div>
-
-        <div style="flex:1;min-width:180px">
-          <label>Release window</label>
-          <select id="releaseWindow">
-            <option value="">Anything</option>
-            <option value="new">New (last 2 years)</option>
-            <option value="recent">2015–2021</option>
-            <option value="classic">Before 2015</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="row row--inputs">
-        <div style="flex:2;min-width:240px">
-          <label>Streaming services (US)</label>
-          <div class="row" id="providerChips"></div>
-          <div class="sublabel">Tip: pick the services you actually subscribe to.</div>
-        </div>
-
-        <div style="flex:1;min-width:200px">
-          <label>Minimum community rating (IMDb)</label>
-          <input id="minImdb" type="range" min="0" max="9" step="0.5" value="6.5" oninput="minImdbOut.textContent=this.value">
-          <div class="sublabel">≥ <span id="minImdbOut">6.5</span>/10</div>
-        </div>
-
-        <div style="flex:1;min-width:200px">
-          <label>Series filter</label>
-          <select id="seriesType">
-            <option value="">Surprise Me!</option>
-            <option value="series">Part of a series / multiple seasons</option>
-            <option value="standalone">Standalone / one season</option>
-          </select>
-        </div>
-      </div>
-
-        <div class="row row--actions">
-          <button class="btn" id="findBtn">Find something to watch</button>
-        </div>
-      </div>
-    </aside>
-
-    <!-- Results -->
-    <div id="resultsContainer">
-      <div class="results-toolbar">
-        <h2 id="resultsHeading">Trending</h2>
-        <button class="btn secondary" id="shuffleBtn" title="Show different matches">Roll again</button>
-      </div>
-      <div id="results" class="grid"></div>
-    </div>
-  </div>
-  <aside id="seenDrawer" class="drawer drawer--seen">
-    <div class="panel" id="seenList">
-      <div id="seenGrid" class="grid"></div>
-    </div>
-  </aside>
-  <div id="status" class="sublabel"></div>
-
-  <div class="panel">
-    <div class="disclaimer">
-      Data © TMDb; watch-provider availability powered by TMDb’s JustWatch partnership. Ratings via OMDb (IMDb & Rotten Tomatoes when available).
-    </div>
-  </div>
-</main>
-
-<script type="module">
-import { init } from './src/app.js';
-init();
-</script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StreamPal</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
