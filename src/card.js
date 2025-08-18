@@ -26,7 +26,7 @@ export function card(t, state, { saveSeen, saveKept, tmdbKey }) {
     <img class="poster" alt="" src="${poster}">
     <div class="meta">
       <div class="title">${title} ${year ? `<span class="sublabel">(${year})</span>` : ''}</div>
-      <div class="sublabel">${t.overview?.slice(0, 180) ?? ''}${(t.overview || '').length > 180 ? '…' : ''}</div>
+      <div class="sublabel">${t.overview ?? ''}</div>
       <div class="badges">
         ${showSeries ? `<span class="badge series-badge">${seriesLabel}</span>` : ''}
         ${g.map(x => `<span class="badge">${x}</span>`).join('')}
