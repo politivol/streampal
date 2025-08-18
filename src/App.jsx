@@ -20,7 +20,11 @@ function App() {
   return (
     <div className="container">
       <Header />
-      {session ? <SeenList session={session} /> : <AuthPanel />}
+      {session ? (
+        <SeenList session={session} onSession={setSession} />
+      ) : (
+        <AuthPanel onSession={setSession} />
+      )}
     </div>
   );
 }
