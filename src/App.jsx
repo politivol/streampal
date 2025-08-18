@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import AuthPanel from './components/AuthPanel.jsx';
 import SeenList from './components/SeenList.jsx';
+import Header from './components/Header.jsx';
 import { supabase } from './lib/supabaseClient.js';
 
 function App() {
@@ -17,8 +18,8 @@ function App() {
   }, []);
 
   return (
-    <div>
-      <h1>StreamPal</h1>
+    <div className="container">
+      <Header />
       {session ? <SeenList session={session} /> : <AuthPanel />}
     </div>
   );
