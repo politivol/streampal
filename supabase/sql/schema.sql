@@ -25,7 +25,10 @@ create policy "Users can update their own profile" on profiles
 create table if not exists user_items (
   id bigserial primary key,
   user_id uuid references auth.users on delete cascade,
-  item_id text not null,
+  tmdb_id text not null,
+  item_type text not null,
+  list text not null,
+  payload jsonb,
   created_at timestamp with time zone default now()
 );
 
