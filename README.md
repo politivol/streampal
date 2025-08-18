@@ -24,6 +24,10 @@ It builds the site with Node 20, uploads the `dist` directory, and publishes to 
   ```
 - Set the OMDb API key secret and deploy the edge function:
   ```bash
-  supabase secrets set OMDB_API_KEY=YOUR_KEY
+  supabase secrets set OMDB_KEY=YOUR_KEY
   supabase functions deploy omdb-proxy
+  ```
+- Client code should call the proxy function rather than OMDb directly:
+  ```js
+  fetch(`${import.meta.env.VITE_OMDB_PROXY_URL}?t=The%20Matrix`)
   ```
