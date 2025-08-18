@@ -18,7 +18,7 @@ This project uses Supabase for database tables and edge functions.
 
 1. Set the OMDb API key as a secret:
    ```bash
-   supabase secrets set OMDB_API_KEY=YOUR_KEY
+   supabase secrets set OMDB_KEY=YOUR_KEY
    ```
 2. Deploy the function:
    ```bash
@@ -28,6 +28,11 @@ This project uses Supabase for database tables and edge functions.
    ```bash
    supabase functions serve omdb-proxy
    ```
+
+Client code can use the deployed function via an environment variable:
+```js
+fetch(`${import.meta.env.VITE_OMDB_PROXY_URL}?t=The%20Matrix`)
+```
 
 The function proxies requests to the [OMDb API](https://www.omdbapi.com/) and
 sets CORS headers allowing requests from `https://politivol.github.io/streampal/`.
