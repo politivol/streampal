@@ -30,4 +30,4 @@ This project uses Supabase for database tables and edge functions.
    ```
 
 The function proxies requests to the [OMDb API](https://www.omdbapi.com/) and
-sets CORS headers allowing requests from `https://politivol.github.io`.
+sets CORS headers allowing requests from `https://politivol.github.io/streampal/`.

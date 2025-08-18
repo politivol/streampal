@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 
 const OMDB_API_KEY = Deno.env.get("OMDB_API_KEY");
-const ALLOWED_ORIGIN = "https://politivol.github.io";
+const ALLOWED_ORIGIN = "https://politivol.github.io/streampal/";
 
 if (!OMDB_API_KEY) {
   console.error("OMDB_API_KEY is not set");
