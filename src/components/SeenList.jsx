@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
+import Search from './Search.jsx';
 
 export default function SeenList({ session, onSession }) {
   const [items, setItems] = useState([]);
-  const [title, setTitle] = useState('');
 
   const fetchItems = async () => {
     const { data, error } = await supabase
@@ -19,22 +19,18 @@ export default function SeenList({ session, onSession }) {
     fetchItems();
   }, [session]);
 
-  const addItem = async (e) => {
-    e.preventDefault();
-    if (!title) return;
+  const addItem = async (movie) => {
+    if (!movie) return;
     const { error } = await supabase
       .from('user_items')
       .insert({
         user_id: session.user.id,
-        tmdb_id: title,
+        tmdb_id: movie.imdbID,
         item_type: 'movie',
         list: 'seen',
-        payload: { title },
+        payload: { title: movie.Title },
       });
-    if (!error) {
-      setTitle('');
-      fetchItems();
-    }
+    if (!error) fetchItems();
   };
 
   const removeItem = async (id) => {
@@ -58,15 +54,7 @@ export default function SeenList({ session, onSession }) {
         <h2>Seen Movies</h2>
         <button className="btn secondary" type="button" onClick={signOut}>Sign Out</button>
       </div>
-      <form onSubmit={addItem} className="row row--inputs">
-        <input
-          type="text"
-          placeholder="Movie title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        <button className="btn" type="submit">Add</button>
-      </form>
+      <Search onSelect={addItem} />
       <ul>
         {items.map((m) => (
           <li key={m.id} className="row">

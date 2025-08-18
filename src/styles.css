@@ -25,6 +25,20 @@ body {
   align-items: center;
 }
 
+.search-results {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.search-results li button {
+  width: 100%;
+  text-align: left;
+}
+
 button {
   appearance: none;
   border: 0;
