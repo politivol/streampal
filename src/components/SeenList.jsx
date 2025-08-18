@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
 
-export default function SeenList({ session }) {
+export default function SeenList({ session, onSession }) {
   const [items, setItems] = useState([]);
   const [title, setTitle] = useState('');
 
@@ -49,6 +49,7 @@ export default function SeenList({ session }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    onSession?.(null);
   };
 
   return (
