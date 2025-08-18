@@ -1,25 +1,22 @@
 {
   "name": "streampal",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "directories": {
-    "test": "tests"
-  },
-  "scripts": {
-    "build": "vite build",
-    "test": "vitest run"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "version": "0.0.0",
+  "private": true,
   "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
   "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.0",
     "jsdom": "^26.1.0",
     "vite": "^5.2.0",
     "vitest": "^3.2.4"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.55.0"
   }
 }
