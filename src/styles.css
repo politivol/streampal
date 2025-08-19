@@ -176,7 +176,7 @@ button.secondary {
       max-width: 320px;
     }
 
-    .filter-panel .btn {
+    .filter-panel sl-button {
       width: 100%;
     }
 
@@ -195,7 +195,7 @@ button.secondary {
       flex-direction: column;
     }
 
-    .actions .btn {
+    .actions sl-button {
       width: 100%;
     }
   }

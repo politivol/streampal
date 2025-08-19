@@ -69,9 +69,9 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
     <aside className={`filter-panel ${open ? 'open' : ''}`}>
       <div className="row row--actions">
         <h3>Filters</h3>
-        <button className="btn secondary" type="button" onClick={onClose}>
+        <sl-button variant="neutral" type="button" onClick={onClose}>
           Close
-        </button>
+        </sl-button>
       </div>
       <div className="filter-group">
         <label>
@@ -151,9 +151,9 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
           />
         </label>
       </div>
-      <button className="btn" type="button" onClick={apply}>
+      <sl-button variant="primary" type="button" onClick={apply}>
         Search
-      </button>
+      </sl-button>
     </aside>
   );
 }
