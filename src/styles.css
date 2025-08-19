@@ -124,11 +124,19 @@ body {
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   }
 
+  .movie-card::part(base) {
+    border: 3px solid var(--color-text);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  }
+
   .movie-card img[slot="image"] {
     display: block;
     width: 100%;
     height: auto;
-    object-fit: contain;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
   }
 
     .actions {
