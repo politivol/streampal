@@ -59,11 +59,14 @@ export async function fetchDetails(tmdbId) {
     series = {
       id: detailData.belongs_to_collection.id,
       name: detailData.belongs_to_collection.name,
+      type: 'tmdb',
     };
   } else if (omdbData.Type === 'series') {
     series = {
       name: omdbData.Title,
       totalSeasons: omdbData.totalSeasons,
+      imdbId,
+      type: 'omdb',
     };
   }
 
@@ -71,6 +74,7 @@ export async function fetchDetails(tmdbId) {
     id: detailData.id,
     title: detailData.title || detailData.name,
     artwork: detailData.poster_path ? `https://image.tmdb.org/t/p/w500${detailData.poster_path}` : null,
+    releaseDate: detailData.release_date || detailData.first_air_date || null,
     genres: (detailData.genres || []).map((g) => g.name),
     ratings: {
       tmdb: detailData.vote_average,

@@ -3,7 +3,9 @@ import AuthPanel from './components/AuthPanel.jsx';
 import SeenList from './components/SeenList.jsx';
 import Header from './components/Header.jsx';
 import FilterPanel from './components/FilterPanel.jsx';
-import { fetchTrending } from './lib/api.js';
+import ResultsList from './components/ResultsList.jsx';
+import SeriesPanel from './components/SeriesPanel.jsx';
+import { fetchTrending, fetchDetails } from './lib/api.js';
 import { supabase } from './lib/supabaseClient.js';
 
 function App() {
@@ -19,7 +21,8 @@ function App() {
     minRotten: '',
   });
   const [results, setResults] = useState([]);
-  const [index, setIndex] = useState(0);
+  const [pinnedIds, setPinnedIds] = useState(new Set());
+  const [series, setSeries] = useState(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -31,18 +34,43 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  const loadResults = async (mediaType) => {
+    const data = await fetchTrending(mediaType);
+    const filtered = data.filter((r) => !pinnedIds.has(r.id));
+    const detailed = await Promise.all(
+      filtered.map((r) => fetchDetails(r.id).catch(() => null))
+    );
+    setResults((prev) => {
+      const pinned = prev.filter((r) => pinnedIds.has(r.id));
+      return [...pinned, ...detailed.filter(Boolean)];
+    });
+  };
+
   const applyFilters = async (f) => {
     setFilters(f);
     setShowFilters(false);
-    const data = await fetchTrending(f.mediaType || 'movie');
-    setResults(data);
-    setIndex(0);
+    await loadResults(f.mediaType || 'movie');
   };
 
-  const rollAgain = () => {
-    if (results.length > 0) {
-      setIndex((i) => (i + 1) % results.length);
-    }
+  const rollAgain = async () => {
+    await loadResults(filters.mediaType || 'movie');
+  };
+
+  const markSeen = (id) => {
+    setResults((rs) => rs.filter((r) => r.id !== id));
+    setPinnedIds((set) => {
+      const next = new Set(set);
+      next.delete(id);
+      return next;
+    });
+  };
+
+  const togglePin = (id) => {
+    setPinnedIds((set) => {
+      const next = new Set(set);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
   };
 
   return (
@@ -56,21 +84,16 @@ function App() {
         />
       )}
       {results.length > 0 && (
-        <div className="panel">
-          <div className="row row--actions">
-            <h2>Results</h2>
-            <button className="btn secondary" type="button" onClick={rollAgain}>
-              Roll Again
-            </button>
-          </div>
-          <div className="result-item">
-            <h3>{results[index].title}</h3>
-            {results[index].artwork && (
-              <img src={results[index].artwork} alt={results[index].title} />
-            )}
-          </div>
-        </div>
+        <ResultsList
+          results={results}
+          pinnedIds={pinnedIds}
+          onSeen={markSeen}
+          onPin={togglePin}
+          onRollAgain={rollAgain}
+          onShowSeries={(s) => setSeries(s)}
+        />
       )}
+      {series && <SeriesPanel series={series} onClose={() => setSeries(null)} />}
       {session ? (
         <SeenList session={session} onSession={setSession} />
       ) : (

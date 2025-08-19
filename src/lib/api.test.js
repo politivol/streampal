@@ -84,10 +84,11 @@ describe('fetchDetails', () => {
       id: 1,
       title: 'Movie 1',
       artwork: 'https://image.tmdb.org/t/p/w500/p1.jpg',
+      releaseDate: null,
       genres: ['Action'],
       ratings: { tmdb: 8.3, rottenTomatoes: 88 },
       streaming: ['Netflix', 'Hulu'],
-      series: { name: 'Movie 1', totalSeasons: '2' },
+      series: { name: 'Movie 1', totalSeasons: '2', imdbId: 'tt123', type: 'omdb' },
       mediaType: 'movie'
     });
   });
