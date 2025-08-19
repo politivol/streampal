@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import AuthPanel from './components/AuthPanel.jsx';
 import SeenList from './components/SeenList.jsx';
 import Header from './components/Header.jsx';
 import FilterPanel from './components/FilterPanel.jsx';
@@ -11,6 +10,7 @@ import { supabase } from './lib/supabaseClient.js';
 function App() {
   const [session, setSession] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [showSeen, setShowSeen] = useState(false);
   const [filters, setFilters] = useState({
     mediaType: 'movie',
     genres: [],
@@ -75,7 +75,11 @@ function App() {
 
   return (
     <div className="container">
-      <Header session={session} onSession={setSession} onOpenFilters={() => setShowFilters(true)} />
+      <Header
+        session={session}
+        onOpenFilters={() => setShowFilters(true)}
+        onOpenSeen={() => setShowSeen(true)}
+      />
       {showFilters && (
         <FilterPanel
           filters={filters}
@@ -95,10 +99,8 @@ function App() {
         />
       )}
       {series && <SeriesPanel series={series} onClose={() => setSeries(null)} />}
-      {session ? (
-        <SeenList session={session} onSession={setSession} />
-      ) : (
-        <AuthPanel onSession={setSession} />
+      {showSeen && (
+        <SeenList session={session} onSession={setSession} onClose={() => setShowSeen(false)} />
       )}
     </div>
   );
