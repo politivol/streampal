@@ -200,6 +200,7 @@ function App() {
             setSession(s);
             setShowAuth(false);
           }}
+          onClose={() => setShowAuth(false)}
         />
       )}
     </div>
