@@ -114,26 +114,6 @@ body {
   width: 100%;
 }
 
-.header-nav {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.menu-toggle {
-  display: none;
-  justify-self: end;
-}
-
-.drawer-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.mobile {
-  display: none;
-}
 
   .results-list {
     list-style: none;
@@ -144,14 +124,14 @@ body {
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   }
 
-  .actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
 
-  .filter-panel {
-    position: fixed;
+    .filter-panel {
+      position: fixed;
     top: 0;
     right: 0;
     width: 260px;
@@ -162,7 +142,33 @@ body {
     box-shadow: -2px 0 8px rgba(0, 0, 0, 0.5);
     transform: translateX(100%);
     transition: transform 0.3s ease;
-  }
+}
+
+.title-box {
+  display: inline-block;
+  background: var(--color-border);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tag--release,
+.tag--runtime {
+  background: var(--color-border);
+}
+
+.header-menu {
+  justify-self: end;
+}
 
   .filter-panel.open {
     transform: translateX(0);
@@ -175,18 +181,6 @@ body {
 
     .header-search {
       grid-column: 1 / -1;
-    }
-
-    .header-nav {
-      display: none;
-    }
-
-    .menu-toggle {
-      display: inline-flex;
-    }
-
-    .mobile {
-      display: block;
     }
 
     .filter-panel {

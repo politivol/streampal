@@ -89,6 +89,7 @@ export async function fetchDetails(tmdbId) {
     title: detailData.title || detailData.name,
     artwork: detailData.poster_path ? `https://image.tmdb.org/t/p/w500${detailData.poster_path}` : null,
     releaseDate: detailData.release_date || detailData.first_air_date || null,
+    runtime: detailData.runtime || detailData.episode_run_time?.[0] || null,
     genres: (detailData.genres || []).map((g) => g.name),
     ratings: {
       tmdb: detailData.vote_average,

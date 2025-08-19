@@ -120,6 +120,11 @@ function App() {
     });
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+  };
+
   return (
     <div className="container">
       <Header
@@ -127,6 +132,7 @@ function App() {
         onOpenFilters={() => setShowFilters(true)}
         onOpenSeen={() => setShowSeen(true)}
         onLogin={() => setShowAuth(true)}
+        onLogout={handleLogout}
       />
       {showFilters && (
         <FilterPanel
@@ -166,7 +172,6 @@ function App() {
       {showSeen && (
         <SeenList
           session={session}
-          onSession={setSession}
           onClose={() => setShowSeen(false)}
         />
       )}

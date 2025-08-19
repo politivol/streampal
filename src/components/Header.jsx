@@ -1,12 +1,6 @@
-import { useRef } from 'react';
 import Search from './Search.jsx';
 
-export default function Header({ session, onOpenFilters, onOpenSeen, onLogin }) {
-  const drawer = useRef(null);
-
-  const openDrawer = () => drawer.current?.show();
-  const closeDrawer = () => drawer.current?.hide();
-
+export default function Header({ session, onOpenFilters, onOpenSeen, onLogin, onLogout }) {
   return (
     <header>
       <div className="header-bar">
@@ -51,36 +45,18 @@ export default function Header({ session, onOpenFilters, onOpenSeen, onLogin }) 
         <div className="header-search">
           <Search />
         </div>
-        <nav className="header-nav desktop">
-          <sl-button onClick={onOpenFilters}>Filter</sl-button>
-          {session ? (
-            <sl-button onClick={onOpenSeen}>Seen List</sl-button>
-          ) : (
-            <sl-button onClick={onLogin}>Login</sl-button>
-          )}
-        </nav>
-        <sl-icon-button
-          class="menu-toggle mobile"
-          name="list"
-          label="Menu"
-          onClick={openDrawer}
-        ></sl-icon-button>
-        <sl-drawer ref={drawer} class="mobile" placement="right" label="Menu">
-          <nav className="drawer-nav">
-            <sl-button block onClick={() => { onOpenFilters?.(); closeDrawer(); }}>
-              Filter
-            </sl-button>
+        <sl-dropdown class="header-menu">
+          <sl-button slot="trigger" caret>Menu</sl-button>
+          <sl-menu>
             {session ? (
-              <sl-button block onClick={() => { onOpenSeen?.(); closeDrawer(); }}>
-                Seen List
-              </sl-button>
+              <sl-menu-item onClick={onLogout}>Logout</sl-menu-item>
             ) : (
-              <sl-button block onClick={() => { onLogin?.(); closeDrawer(); }}>
-                Login
-              </sl-button>
+              <sl-menu-item onClick={onLogin}>Login</sl-menu-item>
             )}
-          </nav>
-        </sl-drawer>
+            <sl-menu-item onClick={onOpenSeen}>Seen List</sl-menu-item>
+            <sl-menu-item onClick={onOpenFilters}>Filter</sl-menu-item>
+          </sl-menu>
+        </sl-dropdown>
       </div>
     </header>
   );

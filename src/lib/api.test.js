@@ -97,6 +97,7 @@ describe('fetchDetails', () => {
       title: 'Movie 1',
       artwork: 'https://image.tmdb.org/t/p/w500/p1.jpg',
       releaseDate: null,
+      runtime: null,
       genres: ['Action'],
       ratings: { tmdb: 8.3, rottenTomatoes: 88 },
       streaming: ['Netflix', 'Hulu'],

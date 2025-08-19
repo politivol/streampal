@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabaseClient.js';
 import Search from './Search.jsx';
 import { toast } from '../lib/toast.js';
 
-export default function SeenList({ session, onSession, onClose }) {
+export default function SeenList({ session, onClose }) {
   const [seenItems, setSeenItems] = useState([]);
   const [pinnedItems, setPinnedItems] = useState([]);
   const [open, setOpen] = useState(false);
@@ -12,22 +12,21 @@ export default function SeenList({ session, onSession, onClose }) {
     if (session) {
       const { data, error } = await supabase
         .from('user_items')
-        .select('id,list,payload')
+        .select('id,payload')
         .eq('user_id', session.user.id)
-        .in('list', ['seen', 'pinned'])
+        .eq('list', 'seen')
         .order('id');
       if (error) {
         toast(error.message, 'danger', 5000, 'exclamation-octagon');
       } else if (data) {
-        setSeenItems(data.filter((i) => i.list === 'seen'));
-        setPinnedItems(data.filter((i) => i.list === 'pinned'));
+        setSeenItems(data);
       }
     } else {
       const seen = JSON.parse(sessionStorage.getItem('seen') || '[]');
-      const pinned = JSON.parse(sessionStorage.getItem('pinned') || '[]');
       setSeenItems(seen);
-      setPinnedItems(pinned);
     }
+    const pinned = JSON.parse(sessionStorage.getItem('pinned') || '[]');
+    setPinnedItems(pinned);
   };
 
   useEffect(() => {
@@ -63,13 +62,13 @@ export default function SeenList({ session, onSession, onClose }) {
   };
 
   const removeItem = async (id, list) => {
-    if (session) {
+    if (session && list === 'seen') {
       const { error } = await supabase
         .from('user_items')
         .delete()
         .eq('id', id)
         .eq('user_id', session.user.id)
-        .eq('list', list);
+        .eq('list', 'seen');
       if (error) {
         toast(error.message, 'danger', 5000, 'exclamation-octagon');
       } else {
@@ -85,26 +84,11 @@ export default function SeenList({ session, onSession, onClose }) {
     }
   };
 
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast(error.message, 'danger', 5000, 'exclamation-octagon');
-    } else {
-      toast('Signed out', 'success', 3000, 'check-circle');
-      onSession?.(null);
-    }
-  };
-
   return (
     <div className={`panel side-panel ${open ? 'open' : ''}`}>
       <div className="row row--actions">
         <h2>Your Lists</h2>
         <div className="row">
-          {session && (
-            <sl-button variant="neutral" type="button" onClick={signOut}>
-              Sign Out
-            </sl-button>
-          )}
           <sl-button variant="neutral" type="button" onClick={onClose}>
             Close
           </sl-button>
