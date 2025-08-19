@@ -3,16 +3,20 @@ import { supabase } from '../lib/supabaseClient.js';
 import Search from './Search.jsx';
 
 export default function SeenList({ session, onSession }) {
-  const [items, setItems] = useState([]);
+  const [seenItems, setSeenItems] = useState([]);
+  const [pinnedItems, setPinnedItems] = useState([]);
 
   const fetchItems = async () => {
     const { data, error } = await supabase
       .from('user_items')
-      .select('id,payload')
+      .select('id,list,payload')
       .eq('user_id', session.user.id)
-      .eq('list', 'seen')
+      .in('list', ['seen', 'pinned'])
       .order('id');
-    if (!error && data) setItems(data);
+    if (!error && data) {
+      setSeenItems(data.filter((i) => i.list === 'seen'));
+      setPinnedItems(data.filter((i) => i.list === 'pinned'));
+    }
   };
 
   useEffect(() => {
@@ -33,13 +37,13 @@ export default function SeenList({ session, onSession }) {
     if (!error) fetchItems();
   };
 
-  const removeItem = async (id) => {
+  const removeItem = async (id, list) => {
     const { error } = await supabase
       .from('user_items')
       .delete()
       .eq('id', id)
       .eq('user_id', session.user.id)
-      .eq('list', 'seen');
+      .eq('list', list);
     if (!error) fetchItems();
   };
 
@@ -51,16 +55,28 @@ export default function SeenList({ session, onSession }) {
   return (
     <div className="panel">
       <div className="row row--actions">
-        <h2>Seen Movies</h2>
+        <h2>Your Lists</h2>
         <button className="btn secondary" type="button" onClick={signOut}>Sign Out</button>
       </div>
       <Search onSelect={addItem} />
+      <h3>Seen Movies</h3>
       <ul>
-        {items.map((m) => (
+        {seenItems.map((m) => (
           <li key={m.id} className="row">
             <span>{m.payload?.title}</span>
-            <button className="btn secondary" type="button" onClick={() => removeItem(m.id)}>
+            <button className="btn secondary" type="button" onClick={() => removeItem(m.id, 'seen')}>
               Remove
+            </button>
+          </li>
+        ))}
+      </ul>
+      <h3>Pinned Movies</h3>
+      <ul>
+        {pinnedItems.map((m) => (
+          <li key={m.id} className="row">
+            <span>{m.payload?.title}</span>
+            <button className="btn secondary" type="button" onClick={() => removeItem(m.id, 'pinned')}>
+              Unpin
             </button>
           </li>
         ))}

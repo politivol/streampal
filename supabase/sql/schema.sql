@@ -27,9 +27,10 @@ create table if not exists user_items (
   user_id uuid references auth.users on delete cascade,
   tmdb_id text not null,
   item_type text not null,
-  list text not null,
+  list text not null check (list in ('seen', 'pinned')),
   payload jsonb,
-  created_at timestamp with time zone default now()
+  created_at timestamp with time zone default now(),
+  unique (user_id, tmdb_id, list)
 );
 
 -- Enable Row Level Security and policies for user_items
