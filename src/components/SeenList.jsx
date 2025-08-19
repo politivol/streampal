@@ -81,13 +81,13 @@ export default function SeenList({ session, onSession, onClose }) {
         <h2>Your Lists</h2>
         <div className="row">
           {session && (
-            <button className="btn secondary" type="button" onClick={signOut}>
+            <sl-button variant="neutral" type="button" onClick={signOut}>
               Sign Out
-            </button>
+            </sl-button>
           )}
-          <button className="btn secondary" type="button" onClick={onClose}>
+          <sl-button variant="neutral" type="button" onClick={onClose}>
             Close
-          </button>
+          </sl-button>
         </div>
       </div>
       <Search onSelect={addItem} />
@@ -96,9 +96,9 @@ export default function SeenList({ session, onSession, onClose }) {
         {seenItems.map((m) => (
           <li key={m.id} className="row">
             <span>{m.payload?.title}</span>
-            <button className="btn secondary" type="button" onClick={() => removeItem(m.id, 'seen')}>
+            <sl-button variant="neutral" type="button" onClick={() => removeItem(m.id, 'seen')}>
               Remove
-            </button>
+            </sl-button>
           </li>
         ))}
       </ul>
@@ -107,9 +107,9 @@ export default function SeenList({ session, onSession, onClose }) {
         {pinnedItems.map((m) => (
           <li key={m.id} className="row">
             <span>{m.payload?.title}</span>
-            <button className="btn secondary" type="button" onClick={() => removeItem(m.id, 'pinned')}>
+            <sl-button variant="neutral" type="button" onClick={() => removeItem(m.id, 'pinned')}>
               Unpin
-            </button>
+            </sl-button>
           </li>
         ))}
       </ul>

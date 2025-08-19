@@ -24,9 +24,9 @@ export default function SeriesPanel({ series, onClose }) {
     <div className="panel side-panel">
       <div className="row row--actions">
         <h2>{series?.name || 'Series'}</h2>
-        <button className="btn secondary" type="button" onClick={onClose}>
+        <sl-button variant="neutral" type="button" onClick={onClose}>
           Close
-        </button>
+        </sl-button>
       </div>
       <ul>
         {entries.map((e) => (

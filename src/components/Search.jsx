@@ -47,9 +47,9 @@ export default function Search({ onSelect }) {
         <ul className="search-results">
           {results.map((r) => (
             <li key={r.imdbID}>
-              <button className="btn secondary" type="button" onClick={() => handleSelect(r)}>
+              <sl-button variant="neutral" type="button" onClick={() => handleSelect(r)}>
                 {r.Title} ({r.Year})
-              </button>
+              </sl-button>
             </li>
           ))}
         </ul>

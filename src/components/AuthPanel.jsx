@@ -58,9 +58,9 @@ export default function AuthPanel({ onSession }) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <button className="btn" type="submit">
+          <sl-button variant="primary" type="submit">
             Sign Up
-          </button>
+          </sl-button>
         </form>
       ) : (
         <form onSubmit={sendMagicLink} className="row row--inputs">
@@ -70,49 +70,49 @@ export default function AuthPanel({ onSession }) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <button className="btn" type="submit">
+          <sl-button variant="primary" type="submit">
             Send Magic Link
-          </button>
+          </sl-button>
         </form>
       )}
       {error && <p>{error}</p>}
       {message && <p>{message}</p>}
       <div className="row row--inputs">
-        <button
-          className="btn secondary"
+        <sl-button
+          variant="neutral"
           type="button"
           onClick={() => signInWithProvider('google')}
         >
           Google
-        </button>
-        <button
-          className="btn secondary"
+        </sl-button>
+        <sl-button
+          variant="neutral"
           type="button"
           onClick={() => signInWithProvider('github')}
         >
           GitHub
-        </button>
+        </sl-button>
       </div>
       <p>
         {mode === 'sign_up' ? (
           <>Already have an account?{' '}
-            <button
-              className="btn secondary"
+            <sl-button
+              variant="neutral"
               type="button"
               onClick={() => setMode('magic')}
             >
               Sign in
-            </button>
+            </sl-button>
           </>
         ) : (
           <>Need an account?{' '}
-            <button
-              className="btn secondary"
+            <sl-button
+              variant="neutral"
               type="button"
               onClick={() => setMode('sign_up')}
             >
               Sign up
-            </button>
+            </sl-button>
           </>
         )}
       </p>

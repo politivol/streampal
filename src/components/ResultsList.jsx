@@ -70,9 +70,9 @@ export default function ResultsList({
     <div className="panel">
       <div className="row row--actions">
         <h2>Results</h2>
-        <button className="btn secondary" type="button" onClick={onRollAgain}>
+        <sl-button variant="neutral" type="button" onClick={onRollAgain}>
           Roll Again
-        </button>
+        </sl-button>
       </div>
       <ul className="results-list">
         {results.map((r) => (
@@ -100,17 +100,17 @@ export default function ResultsList({
                 </div>
               )}
               {r.series && (
-                <button className="btn link" type="button" onClick={() => onShowSeries(r.series)}>
+                <sl-button variant="text" type="button" onClick={() => onShowSeries(r.series)}>
                   Series
-                </button>
+                </sl-button>
               )}
               <div className="actions">
-                <button className="btn secondary" type="button" onClick={() => handleSeen(r)}>
+                <sl-button variant="neutral" type="button" onClick={() => handleSeen(r)}>
                   Seen it!
-                </button>
-                <button className="btn secondary" type="button" onClick={() => handlePin(r)}>
+                </sl-button>
+                <sl-button variant="neutral" type="button" onClick={() => handlePin(r)}>
                   {pinnedIds.has(r.id) ? 'Unpin' : 'Pin'}
-                </button>
+                </sl-button>
               </div>
             </div>
           </li>
