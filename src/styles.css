@@ -81,30 +81,26 @@ button.secondary {
     flex: 1;
   }
 
-  .header-actions {
+  .header-nav {
     margin-left: auto;
     display: flex;
     align-items: center;
     gap: 0.5rem;
   }
 
-  .account-menu {
-    position: relative;
+  .menu-toggle {
+    display: none;
+    margin-left: auto;
   }
 
-  .account-dropdown {
-    position: absolute;
-    right: 0;
-    top: 100%;
-    margin-top: 0.5rem;
-    background: #171a21;
-    border: 1px solid #2a323e;
-    border-radius: 4px;
-    padding: 0.5rem;
+  .drawer-nav {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    z-index: 100;
+  }
+
+  .mobile {
+    display: none;
   }
 
   .results-list {
@@ -163,10 +159,16 @@ button.secondary {
       flex-basis: 100%;
     }
 
-    .header-actions {
-      margin-left: 0;
-      flex-basis: 100%;
-      justify-content: flex-start;
+    .header-nav {
+      display: none;
+    }
+
+    .menu-toggle {
+      display: inline-flex;
+    }
+
+    .mobile {
+      display: block;
     }
 
     .filter-panel {
