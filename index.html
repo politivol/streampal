@@ -4,9 +4,32 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>StreamPal</title>
+    <link rel="preload" as="image" href="/logo.svg" />
   </head>
   <body>
-    <div id="root"></div>
+    <header class="site-header">
+      <div class="container header-row">
+        <a class="brand" href="/">
+          <img src="/logo.svg" alt="StreamPal" class="brand-logo" />
+          <span class="brand-name">StreamPal</span>
+        </a>
+
+        <button class="nav-toggle" aria-expanded="false" aria-controls="mobile-nav">
+          <span class="sr-only">Toggle menu</span>
+          ☰
+        </button>
+
+        <nav class="nav-actions" id="mobile-nav">
+          <button class="btn" id="filter-btn" type="button">Filter</button>
+          <button class="btn" id="account-btn" type="button" hidden>My Account</button>
+          <button class="btn" id="logout-btn" type="button" hidden>Logout</button>
+          <button class="btn btn-primary" id="login-btn" type="button">Log in</button>
+        </nav>
+      </div>
+    </header>
+    <main class="container">
+      <div id="root"></div>
+    </main>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
