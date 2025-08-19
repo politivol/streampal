@@ -1,10 +1,8 @@
+import { normalizeProviderName, US_STREAMING_PROVIDERS } from './providers.js';
+
 const TMDB_API_KEY = 'e20c40a6be42cbc9d98052ca3db76926';
 const OMDB_PROXY = import.meta.env.VITE_OMDB_PROXY_URL;
 const SB_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-function normalizeProviderName(name) {
-  return name.replace(/\s+with ads/i, '').trim();
-}
 
 function extractProviders(watch) {
   const us = watch?.results?.US;
@@ -13,7 +11,8 @@ function extractProviders(watch) {
   const groups = ['flatrate', 'rent', 'buy', 'free', 'ads'];
   for (const g of groups) {
     for (const p of us[g] || []) {
-      providerSet.add(normalizeProviderName(p.provider_name));
+      const name = normalizeProviderName(p.provider_name);
+      if (US_STREAMING_PROVIDERS.includes(name)) providerSet.add(name);
     }
   }
   return Array.from(providerSet);

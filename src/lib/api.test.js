@@ -61,8 +61,10 @@ describe('fetchDetails', () => {
           US: {
             flatrate: [
               { provider_name: 'Netflix with ads' },
-              { provider_name: 'Netflix' },
-              { provider_name: 'Hulu' }
+              { provider_name: 'Amazon Prime Video' },
+              { provider_name: 'HBO Max' },
+              { provider_name: 'Hulu' },
+              { provider_name: 'Obscure Provider' }
             ]
           }
         }
@@ -100,7 +102,7 @@ describe('fetchDetails', () => {
       runtime: null,
       genres: ['Action'],
       ratings: { tmdb: 8.3, rottenTomatoes: 88 },
-      streaming: ['Netflix', 'Hulu'],
+      streaming: ['Netflix', 'Prime Video', 'Max', 'Hulu'],
       series: { name: 'Movie 1', totalSeasons: '2', imdbId: 'tt123', type: 'omdb' },
       mediaType: 'movie'
     });
