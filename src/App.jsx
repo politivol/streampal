@@ -86,6 +86,7 @@ function App() {
       {results.length > 0 && (
         <ResultsList
           results={results}
+          session={session}
           pinnedIds={pinnedIds}
           onSeen={markSeen}
           onPin={togglePin}
