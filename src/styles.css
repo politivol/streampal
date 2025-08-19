@@ -1,8 +1,22 @@
+:root {
+  --color-bg: #0f1115;
+  --color-text: #e8ecf1;
+  --color-surface: #171a21;
+  --color-border: #2a2f39;
+  --color-accent: #4488cc;
+
+  --service-netflix: #e50914;
+  --service-prime-video: #00a8e1;
+  --service-disney: #113ccf;
+  --service-hulu: #1ce783;
+  --service-max: #5624d0;
+}
+
 body {
   margin: 0;
   font-family: system-ui, sans-serif;
-  background: #0f1115;
-  color: #e8ecf1;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 .container {
@@ -12,8 +26,8 @@ body {
 }
 
 .card {
-  background: #171a21;
-  border: 1px solid #2a2f39;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 1rem;
 }
@@ -25,6 +39,41 @@ body {
   align-items: center;
 }
 
+.tag,
+.badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  background: var(--color-border);
+  color: var(--color-text);
+}
+
+.service-netflix {
+  background: var(--service-netflix);
+  color: #fff;
+}
+
+.service-prime-video {
+  background: var(--service-prime-video);
+  color: #000;
+}
+
+.service-disney {
+  background: var(--service-disney);
+  color: #fff;
+}
+
+.service-hulu {
+  background: var(--service-hulu);
+  color: #000;
+}
+
+.service-max {
+  background: var(--service-max);
+  color: #fff;
+}
+
 .search-results {
   list-style: none;
   padding: 0;
@@ -34,96 +83,65 @@ body {
   gap: 0.5rem;
 }
 
-.search-results li button {
+.search-results li sl-button::part(base) {
   width: 100%;
-  text-align: left;
+  justify-content: flex-start;
 }
 
-button {
-  appearance: none;
-  border: 0;
-  border-radius: 8px;
-  padding: 0.5rem 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  background: #48c;
-  color: #02111f;
-}
-
-button.secondary {
-  background: #1e2430;
-  color: #cfe7ff;
-  border: 1px solid #2a323e;
-}
 
 /* Header */
-  .header-bar {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.5rem 0;
-    flex-wrap: wrap;
-  }
+.header-bar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
 
-  .header-brand {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-decoration: none;
-    color: inherit;
-  }
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+}
 
-  .header-logo {
-    height: 64px;
-  }
+.header-logo {
+  height: 64px;
+}
 
-  .header-search {
-    flex: 1;
-  }
+.header-search {
+  width: 100%;
+}
 
-  .header-nav {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 
-  .menu-toggle {
-    display: none;
-    margin-left: auto;
-  }
+.menu-toggle {
+  display: none;
+  justify-self: end;
+}
 
-  .drawer-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
+.drawer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 
-  .mobile {
-    display: none;
-  }
+.mobile {
+  display: none;
+}
 
   .results-list {
     list-style: none;
     padding: 0;
     margin: 1rem 0;
-    display: flex;
-    flex-direction: column;
+    display: grid;
     gap: 1rem;
-  }
-
-  .result-card {
-    display: flex;
-    gap: 1rem;
-  }
-
-  .result-card img {
-    width: 96px;
-    border-radius: 4px;
-  }
-
-  .result-card__body {
-    flex: 1;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   }
 
   .actions {
@@ -137,14 +155,14 @@ button.secondary {
     top: 0;
     right: 0;
     width: 260px;
-  height: 100%;
-  background: #171a21;
-  border-left: 1px solid #2a2f39;
-  padding: 1rem;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.5);
-  transform: translateX(100%);
-  transition: transform 0.3s ease;
-}
+    height: 100%;
+    background: var(--color-surface);
+    border-left: 1px solid var(--color-border);
+    padding: 1rem;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.5);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+  }
 
   .filter-panel.open {
     transform: translateX(0);
@@ -156,7 +174,7 @@ button.secondary {
     }
 
     .header-search {
-      flex-basis: 100%;
+      grid-column: 1 / -1;
     }
 
     .header-nav {
@@ -180,14 +198,8 @@ button.secondary {
       width: 100%;
     }
 
-    .result-card {
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .result-card img {
-      width: 100%;
-      max-width: 200px;
+    .results-list {
+      grid-template-columns: 1fr;
     }
 
     .actions {
