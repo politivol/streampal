@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
 import Search from './Search.jsx';
+import { toast } from '../lib/toast.js';
 
 export default function SeenList({ session, onSession, onClose }) {
   const [seenItems, setSeenItems] = useState([]);
@@ -15,7 +16,9 @@ export default function SeenList({ session, onSession, onClose }) {
         .eq('user_id', session.user.id)
         .in('list', ['seen', 'pinned'])
         .order('id');
-      if (!error && data) {
+      if (error) {
+        toast(error.message, 'danger', 5000, 'exclamation-octagon');
+      } else if (data) {
         setSeenItems(data.filter((i) => i.list === 'seen'));
         setPinnedItems(data.filter((i) => i.list === 'pinned'));
       }
@@ -44,12 +47,18 @@ export default function SeenList({ session, onSession, onClose }) {
           list: 'seen',
           payload: { title: movie.Title },
         });
-      if (!error) fetchItems();
+      if (error) {
+        toast(error.message, 'danger', 5000, 'exclamation-octagon');
+      } else {
+        toast('Added to seen list', 'success', 3000, 'check-circle');
+        fetchItems();
+      }
     } else {
       const seen = JSON.parse(sessionStorage.getItem('seen') || '[]');
       seen.push({ id: movie.imdbID, payload: { title: movie.Title } });
       sessionStorage.setItem('seen', JSON.stringify(seen));
       setSeenItems(seen);
+      toast('Added to seen list', 'success', 3000, 'check-circle');
     }
   };
 
@@ -61,18 +70,29 @@ export default function SeenList({ session, onSession, onClose }) {
         .eq('id', id)
         .eq('user_id', session.user.id)
         .eq('list', list);
-      if (!error) fetchItems();
+      if (error) {
+        toast(error.message, 'danger', 5000, 'exclamation-octagon');
+      } else {
+        fetchItems();
+        toast('Removed item', 'success', 3000, 'check-circle');
+      }
     } else {
       const key = list === 'seen' ? 'seen' : 'pinned';
       const items = JSON.parse(sessionStorage.getItem(key) || '[]').filter((m) => m.id !== id);
       sessionStorage.setItem(key, JSON.stringify(items));
       if (key === 'seen') setSeenItems(items); else setPinnedItems(items);
+      toast('Removed item', 'success', 3000, 'check-circle');
     }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    onSession?.(null);
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast(error.message, 'danger', 5000, 'exclamation-octagon');
+    } else {
+      toast('Signed out', 'success', 3000, 'check-circle');
+      onSession?.(null);
+    }
   };
 
   return (

@@ -1,44 +1,42 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
+import { toast } from '../lib/toast.js';
 
 export default function AuthPanel({ onSession }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [mode, setMode] = useState('magic');
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
 
   const sendMagicLink = async (e) => {
     e.preventDefault();
-    setError('');
-    setMessage('');
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: import.meta.env.VITE_SITE_URL },
     });
-    if (error) setError(error.message);
-    else setMessage('Check your email for the magic link.');
+    if (error) toast(error.message, 'danger', 5000, 'exclamation-octagon');
+    else toast('Check your email for the magic link.', 'success', 5000, 'info-circle');
   };
 
   const signUp = async (e) => {
     e.preventDefault();
-    setError('');
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { emailRedirectTo: import.meta.env.VITE_SITE_URL },
     });
-    if (error) setError(error.message);
-    else onSession?.(data.session);
+    if (error) toast(error.message, 'danger', 5000, 'exclamation-octagon');
+    else {
+      toast('Account created successfully.', 'success', 5000, 'check-circle');
+      onSession?.(data.session);
+    }
   };
 
   const signInWithProvider = async (provider) => {
-    setError('');
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo: import.meta.env.VITE_SITE_URL },
     });
-    if (error) setError(error.message);
+    if (error) toast(error.message, 'danger', 5000, 'exclamation-octagon');
   };
 
   return (
@@ -75,8 +73,6 @@ export default function AuthPanel({ onSession }) {
           </sl-button>
         </form>
       )}
-      {error && <p>{error}</p>}
-      {message && <p>{message}</p>}
       <div className="row row--inputs">
         <sl-button
           variant="neutral"
