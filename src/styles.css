@@ -196,18 +196,9 @@ body {
   z-index: 10;
 }
 
-.menu-dropdown li button {
-  background: none;
-  border: none;
-  color: var(--color-text);
-  padding: 0.5rem 1rem;
-  text-align: left;
+.menu-dropdown sl-button::part(base) {
   width: 100%;
-  cursor: pointer;
-}
-
-.menu-dropdown li button:hover {
-  background: var(--color-border);
+  justify-content: flex-start;
 }
 
   .filter-panel.open {

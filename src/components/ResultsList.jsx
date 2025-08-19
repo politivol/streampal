@@ -100,7 +100,7 @@ export default function ResultsList({
                 </div>
                 {r.series && (
                   <sl-button
-                    variant="text"
+                    variant="neutral"
                     type="button"
                     data-action="details"
                     onClick={() => onShowSeries(r.series)}

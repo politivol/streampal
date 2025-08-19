@@ -87,46 +87,58 @@ export default function Header({
             <ul className="menu-dropdown" role="menu">
               {session ? (
                 <li role="menuitem">
-                  <button
+                  <sl-button
+                    variant="neutral"
+                    type="button"
+                    style={{ width: '100%' }}
                     onClick={() => {
                       onLogout();
                       setMenuOpen(false);
                     }}
                   >
                     Logout
-                  </button>
+                  </sl-button>
                 </li>
               ) : (
                 <li role="menuitem">
-                  <button
+                  <sl-button
+                    variant="neutral"
+                    type="button"
+                    style={{ width: '100%' }}
                     onClick={() => {
                       onLogin();
                       setMenuOpen(false);
                     }}
                   >
                     Login
-                  </button>
+                  </sl-button>
                 </li>
               )}
               <li role="menuitem">
-                <button
+                <sl-button
+                  variant="neutral"
+                  type="button"
+                  style={{ width: '100%' }}
                   onClick={() => {
                     onOpenSeen();
                     setMenuOpen(false);
                   }}
                 >
                   Seen List
-                </button>
+                </sl-button>
               </li>
               <li role="menuitem">
-                <button
+                <sl-button
+                  variant="neutral"
+                  type="button"
+                  style={{ width: '100%' }}
                   onClick={() => {
                     onOpenFilters();
                     setMenuOpen(false);
                   }}
                 >
                   Filter
-                </button>
+                </sl-button>
               </li>
             </ul>
           )}
