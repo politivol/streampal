@@ -1,0 +1,2 @@
+[functions.omdb-proxy]
+verify_jwt = false
