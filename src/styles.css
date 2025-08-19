@@ -88,6 +88,25 @@ button.secondary {
     gap: 0.5rem;
   }
 
+  .account-menu {
+    position: relative;
+  }
+
+  .account-dropdown {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 0.5rem;
+    background: #171a21;
+    border: 1px solid #2a323e;
+    border-radius: 4px;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 100;
+  }
+
   .results-list {
     list-style: none;
     padding: 0;

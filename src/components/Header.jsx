@@ -1,6 +1,11 @@
+import { useState } from 'react';
 import Search from './Search.jsx';
 
-export default function Header({ session, onOpenFilters, onOpenSeen }) {
+export default function Header({ session, onOpenFilters, onOpenSeen, onLogin }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const toggleMenu = () => setMenuOpen((o) => !o);
+
   return (
     <header>
       <div className="header-bar">
@@ -53,12 +58,35 @@ export default function Header({ session, onOpenFilters, onOpenSeen }) {
           Filter
         </button>
         <div className="header-actions">
-          <span className="auth-status">
-            {session ? 'Logged in!' : 'Log in / Create account'}
-          </span>
-          <button className="btn secondary" type="button" onClick={onOpenSeen}>
-            Seen
-          </button>
+          {session ? (
+            <div className="account-menu">
+              <button
+                className="btn secondary"
+                type="button"
+                onClick={toggleMenu}
+              >
+                My Account
+              </button>
+              {menuOpen && (
+                <div className="account-dropdown">
+                  <button
+                    className="btn secondary"
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onOpenSeen?.();
+                    }}
+                  >
+                    Seen List
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button className="btn secondary" type="button" onClick={onLogin}>
+              Login
+            </button>
+          )}
         </div>
       </div>
     </header>

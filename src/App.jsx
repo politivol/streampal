@@ -4,6 +4,7 @@ import Header from './components/Header.jsx';
 import FilterPanel from './components/FilterPanel.jsx';
 import ResultsList from './components/ResultsList.jsx';
 import SeriesPanel from './components/SeriesPanel.jsx';
+import AuthPanel from './components/AuthPanel.jsx';
 import { fetchTrending, fetchDetails } from './lib/api.js';
 import { supabase } from './lib/supabaseClient.js';
 
@@ -11,6 +12,7 @@ function App() {
   const [session, setSession] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [showSeen, setShowSeen] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
   const [filters, setFilters] = useState({
     mediaType: 'movie',
     genres: [],
@@ -35,6 +37,10 @@ function App() {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (session) setShowAuth(false);
+  }, [session]);
 
   const loadResults = async (f = filters) => {
     const data = await fetchTrending(f.mediaType || 'movie');
@@ -105,6 +111,7 @@ function App() {
         session={session}
         onOpenFilters={() => setShowFilters(true)}
         onOpenSeen={() => setShowSeen(true)}
+        onLogin={() => setShowAuth(true)}
       />
       {showFilters && (
         <FilterPanel
@@ -126,7 +133,19 @@ function App() {
       )}
       {series && <SeriesPanel series={series} onClose={() => setSeries(null)} />}
       {showSeen && (
-        <SeenList session={session} onSession={setSession} onClose={() => setShowSeen(false)} />
+        <SeenList
+          session={session}
+          onSession={setSession}
+          onClose={() => setShowSeen(false)}
+        />
+      )}
+      {showAuth && (
+        <AuthPanel
+          onSession={(s) => {
+            setSession(s);
+            setShowAuth(false);
+          }}
+        />
       )}
     </div>
   );
