@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import Search from './Search.jsx';
 
 export default function Header({
@@ -8,6 +9,20 @@ export default function Header({
   onLogout,
   onSearch,
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClick(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    }
+
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, []);
+
   return (
     <header>
       <div className="header-bar">
@@ -59,18 +74,63 @@ export default function Header({
         <div className="header-search">
           <Search onSearch={onSearch} />
         </div>
-        <sl-dropdown class="header-menu">
-          <sl-button slot="trigger" caret>Menu</sl-button>
-          <sl-menu>
-            {session ? (
-              <sl-menu-item onClick={onLogout}>Logout</sl-menu-item>
-            ) : (
-              <sl-menu-item onClick={onLogin}>Login</sl-menu-item>
-            )}
-            <sl-menu-item onClick={onOpenSeen}>Seen List</sl-menu-item>
-            <sl-menu-item onClick={onOpenFilters}>Filter</sl-menu-item>
-          </sl-menu>
-        </sl-dropdown>
+        <div className="header-menu" ref={menuRef}>
+          <button
+            className="menu-button"
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-expanded={menuOpen}
+            aria-haspopup="true"
+          >
+            Menu
+          </button>
+          {menuOpen && (
+            <ul className="menu-dropdown" role="menu">
+              {session ? (
+                <li role="menuitem">
+                  <button
+                    onClick={() => {
+                      onLogout();
+                      setMenuOpen(false);
+                    }}
+                  >
+                    Logout
+                  </button>
+                </li>
+              ) : (
+                <li role="menuitem">
+                  <button
+                    onClick={() => {
+                      onLogin();
+                      setMenuOpen(false);
+                    }}
+                  >
+                    Login
+                  </button>
+                </li>
+              )}
+              <li role="menuitem">
+                <button
+                  onClick={() => {
+                    onOpenSeen();
+                    setMenuOpen(false);
+                  }}
+                >
+                  Seen List
+                </button>
+              </li>
+              <li role="menuitem">
+                <button
+                  onClick={() => {
+                    onOpenFilters();
+                    setMenuOpen(false);
+                  }}
+                >
+                  Filter
+                </button>
+              </li>
+            </ul>
+          )}
+        </div>
       </div>
     </header>
   );
