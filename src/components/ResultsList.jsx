@@ -67,28 +67,20 @@ export default function ResultsList({
   };
 
   return (
-    <section className="container">
+    <div className="panel">
       <div className="row row--actions">
         <h2>Results</h2>
-        <button className="btn btn-primary" type="button" onClick={onRollAgain}>
+        <button className="btn secondary" type="button" onClick={onRollAgain}>
           Roll Again
         </button>
       </div>
-      <ul className="grid">
+      <ul className="results-list">
         {results.map((r) => (
-          <li key={r.id} className="card">
-            {r.artwork && (
-              <img
-                className="card__media"
-                src={r.artwork}
-                alt={r.title}
-                loading="lazy"
-                decoding="async"
-              />
-            )}
-            <div className="card__body">
-              <h3 className="card__title">{r.title}</h3>
-              {r.releaseDate && <p className="card__meta">{r.releaseDate}</p>}
+          <li key={r.id} className="result-card">
+            {r.artwork && <img src={r.artwork} alt={r.title} />}
+            <div className="result-card__body">
+              <h3>{r.title}</h3>
+              {r.releaseDate && <p className="release-date">{r.releaseDate}</p>}
               {r.genres && (
                 <div className="genres">
                   {r.genres.map((g) => (
@@ -108,27 +100,15 @@ export default function ResultsList({
                 </div>
               )}
               {r.series && (
-                <button
-                  className="btn btn-sm"
-                  type="button"
-                  onClick={() => onShowSeries(r.series)}
-                >
+                <button className="btn link" type="button" onClick={() => onShowSeries(r.series)}>
                   Series
                 </button>
               )}
-              <div className="button-row">
-                <button
-                  className="btn btn-sm"
-                  type="button"
-                  onClick={() => handleSeen(r)}
-                >
+              <div className="actions">
+                <button className="btn secondary" type="button" onClick={() => handleSeen(r)}>
                   Seen it!
                 </button>
-                <button
-                  className="btn btn-sm"
-                  type="button"
-                  onClick={() => handlePin(r)}
-                >
+                <button className="btn secondary" type="button" onClick={() => handlePin(r)}>
                   {pinnedIds.has(r.id) ? 'Unpin' : 'Pin'}
                 </button>
               </div>
@@ -136,6 +116,6 @@ export default function ResultsList({
           </li>
         ))}
       </ul>
-    </section>
+    </div>
   );
 }
