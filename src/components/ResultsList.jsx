@@ -66,6 +66,11 @@ export default function ResultsList({
     }
   };
 
+  const slugify = (name) =>
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-');
+
   return (
     <div className="panel">
       <div className="row row--actions">
@@ -76,43 +81,72 @@ export default function ResultsList({
       </div>
       <ul className="results-list">
         {results.map((r) => (
-          <li key={r.id} className="result-card">
-            {r.artwork && <img src={r.artwork} alt={r.title} />}
-            <div className="result-card__body">
-              <h3>{r.title}</h3>
-              {r.releaseDate && <p className="release-date">{r.releaseDate}</p>}
-              {r.genres && (
-                <div className="genres">
-                  {r.genres.map((g) => (
-                    <span key={g} className="badge">
-                      {g}
+          <li key={r.id}>
+            <sl-card class="movie-card">
+              {r.artwork && <img slot="image" src={r.artwork} alt={r.title} />}
+              <div className="card-body">
+                <h3>{r.title}</h3>
+                {r.releaseDate && <p className="release-date">{r.releaseDate}</p>}
+                {r.streaming && (
+                  <div className="streaming">
+                    {r.streaming.map((s) => (
+                      <span key={s} className={`badge service-${slugify(s)}`}>
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {r.genres && (
+                  <div className="genres">
+                    {r.genres.map((g) => (
+                      <span key={g} className="badge">
+                        {g}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className="ratings">
+                  {r.ratings.tmdb != null && (
+                    <span className="badge rating rating--tmdb">
+                      TMDB: {r.ratings.tmdb.toFixed ? r.ratings.tmdb.toFixed(1) : r.ratings.tmdb}
                     </span>
-                  ))}
-                </div>
-              )}
-              {r.streaming && (
-                <div className="streaming">
-                  {r.streaming.map((s) => (
-                    <span key={s} className="badge badge--provider">
-                      {s}
+                  )}
+                  {r.ratings.rottenTomatoes != null && (
+                    <span className="badge rating rating--rotten">
+                      RT: {r.ratings.rottenTomatoes}%
                     </span>
-                  ))}
+                  )}
                 </div>
-              )}
-              {r.series && (
-                <sl-button variant="text" type="button" onClick={() => onShowSeries(r.series)}>
-                  Series
-                </sl-button>
-              )}
-              <div className="actions">
-                <sl-button variant="neutral" type="button" onClick={() => handleSeen(r)}>
+                {r.series && (
+                  <sl-button
+                    variant="text"
+                    type="button"
+                    data-action="details"
+                    onClick={() => onShowSeries(r.series)}
+                  >
+                    Series
+                  </sl-button>
+                )}
+              </div>
+              <div slot="footer" className="actions">
+                <sl-button
+                  variant="neutral"
+                  type="button"
+                  data-action="seen"
+                  onClick={() => handleSeen(r)}
+                >
                   Seen it!
                 </sl-button>
-                <sl-button variant="neutral" type="button" onClick={() => handlePin(r)}>
+                <sl-button
+                  variant="neutral"
+                  type="button"
+                  data-action="pin"
+                  onClick={() => handlePin(r)}
+                >
                   {pinnedIds.has(r.id) ? 'Unpin' : 'Pin'}
                 </sl-button>
               </div>
-            </div>
+            </sl-card>
           </li>
         ))}
       </ul>
