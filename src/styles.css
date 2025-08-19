@@ -57,41 +57,71 @@ button.secondary {
 }
 
 /* Header */
-.header-bar {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.5rem 0;
-}
+  .header-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    flex-wrap: wrap;
+  }
 
-.header-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  text-decoration: none;
-  color: inherit;
-}
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+  }
 
-.header-logo {
-  height: 64px;
-}
+  .header-logo {
+    height: 64px;
+  }
 
-.header-search {
-  flex: 1;
-}
+  .header-search {
+    flex: 1;
+  }
 
-.header-actions {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
+  .header-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
 
-.filter-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 260px;
+  .results-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .result-card {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .result-card img {
+    width: 96px;
+    border-radius: 4px;
+  }
+
+  .result-card__body {
+    flex: 1;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .filter-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 260px;
   height: 100%;
   background: #171a21;
   border-left: 1px solid #2a2f39;
@@ -101,7 +131,51 @@ button.secondary {
   transition: transform 0.3s ease;
 }
 
-.filter-panel.open {
-  transform: translateX(0);
-}
+  .filter-panel.open {
+    transform: translateX(0);
+  }
+
+  @media (max-width: 600px) {
+    .header-logo {
+      height: 48px;
+    }
+
+    .header-search {
+      flex-basis: 100%;
+    }
+
+    .header-actions {
+      margin-left: 0;
+      flex-basis: 100%;
+      justify-content: flex-start;
+    }
+
+    .filter-panel {
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .filter-panel .btn {
+      width: 100%;
+    }
+
+    .result-card {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .result-card img {
+      width: 100%;
+      max-width: 200px;
+    }
+
+    .actions {
+      width: 100%;
+      flex-direction: column;
+    }
+
+    .actions .btn {
+      width: 100%;
+    }
+  }
 
