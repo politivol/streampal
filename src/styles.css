@@ -55,3 +55,47 @@ button.secondary {
   color: #cfe7ff;
   border: 1px solid #2a323e;
 }
+
+/* Header */
+.header-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.header-logo {
+  height: 40px;
+}
+
+.header-search {
+  flex: 1;
+}
+
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 260px;
+  height: 100%;
+  background: #171a21;
+  border-left: 1px solid #2a2f39;
+  padding: 1rem;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.5);
+}
+
