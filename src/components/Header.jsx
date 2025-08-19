@@ -1,9 +1,6 @@
-import { useState } from 'react';
 import Search from './Search.jsx';
 
-export default function Header({ session, onSession }) {
-  const [showFilters, setShowFilters] = useState(false);
-
+export default function Header({ session, onSession, onOpenFilters }) {
   return (
     <header>
       <div className="header-bar">
@@ -17,7 +14,7 @@ export default function Header({ session, onSession }) {
         <button
           className="btn secondary"
           type="button"
-          onClick={() => setShowFilters(true)}
+          onClick={onOpenFilters}
         >
           Filter
         </button>
@@ -30,21 +27,6 @@ export default function Header({ session, onSession }) {
           </button>
         </div>
       </div>
-      {showFilters && (
-        <aside className="filter-panel">
-          <div className="row row--actions">
-            <h3>Filters</h3>
-            <button
-              className="btn secondary"
-              type="button"
-              onClick={() => setShowFilters(false)}
-            >
-              Close
-            </button>
-          </div>
-          <p>Filter options go here.</p>
-        </aside>
-      )}
     </header>
   );
 }
