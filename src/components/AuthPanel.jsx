@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
 import { toast } from '../lib/toast.js';
 
@@ -34,13 +34,40 @@ export default function AuthPanel({ onSession, onClose }) {
     }
   };
 
-  const signInWithProvider = async (provider) => {
+  const googleButtonRef = useRef(null);
+
+  const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
-      provider,
+      provider: 'google',
       options: { redirectTo: import.meta.env.VITE_SITE_URL },
     });
     if (error) toast(error.message, 'danger', 5000, 'exclamation-octagon');
   };
+
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.onload = () => {
+      if (window.google && googleButtonRef.current) {
+        window.google.accounts.id.initialize({
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+          callback: () => {},
+        });
+        window.google.accounts.id.renderButton(
+          googleButtonRef.current,
+          { theme: 'outline', size: 'large', text: 'signin_with' }
+        );
+        const btn = googleButtonRef.current.querySelector('div[role="button"]');
+        btn?.addEventListener('click', signInWithGoogle);
+      }
+    };
+    document.body.appendChild(script);
+    return () => {
+      const btn = googleButtonRef.current?.querySelector('div[role="button"]');
+      btn?.removeEventListener('click', signInWithGoogle);
+    };
+  }, []);
 
   return (
     <div className="panel modal">
@@ -88,20 +115,7 @@ export default function AuthPanel({ onSession, onClose }) {
         </form>
       )}
       <div className="row row--inputs">
-        <sl-button
-          variant="neutral"
-          type="button"
-          onClick={() => signInWithProvider('google')}
-        >
-          Google
-        </sl-button>
-        <sl-button
-          variant="neutral"
-          type="button"
-          onClick={() => signInWithProvider('github')}
-        >
-          GitHub
-        </sl-button>
+        <div ref={googleButtonRef}></div>
       </div>
       <p>
         {mode === 'sign_up' ? (
