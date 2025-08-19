@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useRef } from 'react';
 import Search from './Search.jsx';
 
 export default function Header({ session, onOpenFilters, onOpenSeen, onLogin }) {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const drawer = useRef(null);
 
-  const toggleMenu = () => setMenuOpen((o) => !o);
+  const openDrawer = () => drawer.current?.show();
+  const closeDrawer = () => drawer.current?.hide();
 
   return (
     <header>
@@ -50,45 +51,38 @@ export default function Header({ session, onOpenFilters, onOpenSeen, onLogin }) 
         <div className="header-search">
           <Search />
         </div>
-        <button
-          className="btn secondary"
-          type="button"
-          onClick={onOpenFilters}
-        >
-          Filter
-        </button>
-        <div className="header-actions">
+        <nav className="header-nav desktop">
+          <sl-button onClick={onOpenFilters}>Filter</sl-button>
           {session ? (
-            <div className="account-menu">
-              <button
-                className="btn secondary"
-                type="button"
-                onClick={toggleMenu}
-              >
-                My Account
-              </button>
-              {menuOpen && (
-                <div className="account-dropdown">
-                  <button
-                    className="btn secondary"
-                    type="button"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      onOpenSeen?.();
-                    }}
-                  >
-                    Seen List
-                  </button>
-                </div>
-              )}
-            </div>
+            <sl-button onClick={onOpenSeen}>Seen List</sl-button>
           ) : (
-            <button className="btn secondary" type="button" onClick={onLogin}>
-              Login
-            </button>
+            <sl-button onClick={onLogin}>Login</sl-button>
           )}
-        </div>
+        </nav>
+        <sl-icon-button
+          class="menu-toggle mobile"
+          name="list"
+          label="Menu"
+          onClick={openDrawer}
+        ></sl-icon-button>
+        <sl-drawer ref={drawer} class="mobile" placement="right" label="Menu">
+          <nav className="drawer-nav">
+            <sl-button block onClick={() => { onOpenFilters?.(); closeDrawer(); }}>
+              Filter
+            </sl-button>
+            {session ? (
+              <sl-button block onClick={() => { onOpenSeen?.(); closeDrawer(); }}>
+                Seen List
+              </sl-button>
+            ) : (
+              <sl-button block onClick={() => { onLogin?.(); closeDrawer(); }}>
+                Login
+              </sl-button>
+            )}
+          </nav>
+        </sl-drawer>
       </div>
     </header>
   );
 }
+
