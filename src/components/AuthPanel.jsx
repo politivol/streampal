@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
 import { toast } from '../lib/toast.js';
 
-export default function AuthPanel({ onSession }) {
+export default function AuthPanel({ onSession, onClose }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [mode, setMode] = useState('magic');
@@ -40,8 +40,13 @@ export default function AuthPanel({ onSession }) {
   };
 
   return (
-    <div className="panel">
-      <h2>{mode === 'sign_up' ? 'Sign Up' : 'Sign In'}</h2>
+    <div className="panel modal">
+      <div className="row row--actions">
+        <h2>{mode === 'sign_up' ? 'Sign Up' : 'Sign In'}</h2>
+        <sl-button variant="neutral" type="button" onClick={onClose}>
+          Close
+        </sl-button>
+      </div>
       {mode === 'sign_up' ? (
         <form onSubmit={signUp} className="row row--inputs">
           <input
