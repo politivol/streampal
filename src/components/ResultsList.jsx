@@ -21,49 +21,22 @@ export default function ResultsList({
           list: 'seen',
           payload: { title: r.title },
         }, { onConflict: 'user_id,tmdb_id,list' });
-      await supabase
-        .from('user_items')
-        .delete()
-        .eq('user_id', session.user.id)
-        .eq('tmdb_id', r.id)
-        .eq('list', 'pinned');
     } else {
       const seen = JSON.parse(sessionStorage.getItem('seen') || '[]');
       if (!seen.find((i) => i.id === r.id)) seen.push({ id: r.id, payload: { title: r.title } });
       sessionStorage.setItem('seen', JSON.stringify(seen));
-      const pinned = (JSON.parse(sessionStorage.getItem('pinned') || '[]')).filter((i) => i.id !== r.id);
-      sessionStorage.setItem('pinned', JSON.stringify(pinned));
     }
+    const pinned = (JSON.parse(sessionStorage.getItem('pinned') || '[]')).filter((i) => i.id !== r.id);
+    sessionStorage.setItem('pinned', JSON.stringify(pinned));
   };
 
   const handlePin = async (r) => {
     onPin?.(r.id);
-    const isPinned = pinnedIds.has(r.id);
-    if (session) {
-      if (isPinned) {
-        await supabase
-          .from('user_items')
-          .delete()
-          .eq('user_id', session.user.id)
-          .eq('tmdb_id', r.id)
-          .eq('list', 'pinned');
-      } else {
-        await supabase
-          .from('user_items')
-          .upsert({
-            user_id: session.user.id,
-            tmdb_id: r.id,
-            item_type: r.mediaType,
-            list: 'pinned',
-            payload: { title: r.title },
-          }, { onConflict: 'user_id,tmdb_id,list' });
-      }
-    } else {
-      const pinned = JSON.parse(sessionStorage.getItem('pinned') || '[]');
-      const idx = pinned.findIndex((i) => i.id === r.id);
-      if (idx >= 0) pinned.splice(idx, 1); else pinned.push({ id: r.id, payload: { title: r.title } });
-      sessionStorage.setItem('pinned', JSON.stringify(pinned));
-    }
+    const pinned = JSON.parse(sessionStorage.getItem('pinned') || '[]');
+    const idx = pinned.findIndex((i) => i.id === r.id);
+    if (idx >= 0) pinned.splice(idx, 1);
+    else pinned.push({ id: r.id, payload: { title: r.title } });
+    sessionStorage.setItem('pinned', JSON.stringify(pinned));
   };
 
   const slugify = (name) =>
@@ -85,8 +58,15 @@ export default function ResultsList({
             <sl-card class="movie-card">
               {r.artwork && <img slot="image" src={r.artwork} alt={r.title} />}
               <div className="card-body">
-                <h3>{r.title}</h3>
-                {r.releaseDate && <p className="release-date">{r.releaseDate}</p>}
+                <h3 className="title-box">{r.title}</h3>
+                <div className="details">
+                  {r.releaseDate && (
+                    <span className="tag tag--release">Release: {r.releaseDate}</span>
+                  )}
+                  {r.runtime && (
+                    <span className="tag tag--runtime">Length: {r.runtime}m</span>
+                  )}
+                </div>
                 {r.streaming && (
                   <div className="streaming">
                     {r.streaming.map((s) => (
