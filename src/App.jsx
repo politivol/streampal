@@ -19,7 +19,7 @@ function App() {
 
   return (
     <div className="container">
-      <Header />
+      <Header session={session} onSession={setSession} />
       {session ? (
         <SeenList session={session} onSession={setSession} />
       ) : (
