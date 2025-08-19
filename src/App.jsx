@@ -5,7 +5,7 @@ import FilterPanel from './components/FilterPanel.jsx';
 import ResultsList from './components/ResultsList.jsx';
 import SeriesPanel from './components/SeriesPanel.jsx';
 import AuthPanel from './components/AuthPanel.jsx';
-import { fetchTrending, fetchDetails } from './lib/api.js';
+import { fetchTrending, fetchDetails, searchTitles } from './lib/api.js';
 import { supabase } from './lib/supabaseClient.js';
 
 function App() {
@@ -26,6 +26,7 @@ function App() {
   const [pinnedIds, setPinnedIds] = useState(new Set());
   const [series, setSeries] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [resultsTitle, setResultsTitle] = useState('Trending');
 
   const startLoading = () => setLoading(true);
   const stopLoading = () => setLoading(false);
@@ -75,6 +76,7 @@ function App() {
       const pinned = prev.filter((r) => pinnedIds.has(r.id));
       return [...pinned, ...applied];
     });
+    setResultsTitle('Trending');
   };
 
   useEffect(() => {
@@ -98,6 +100,21 @@ function App() {
     startLoading();
     try {
       await loadResults(filters);
+    } finally {
+      stopLoading();
+    }
+  };
+
+  const handleSearch = async (q) => {
+    startLoading();
+    try {
+      const data = await searchTitles(q, filters.mediaType || 'movie');
+      const filtered = data.filter((r) => !pinnedIds.has(r.id));
+      const detailed = (
+        await Promise.all(filtered.map((r) => fetchDetails(r.id).catch(() => null)))
+      ).filter(Boolean);
+      setResults(detailed);
+      setResultsTitle(`Search results for "${q}"`);
     } finally {
       stopLoading();
     }
@@ -133,6 +150,7 @@ function App() {
         onOpenSeen={() => setShowSeen(true)}
         onLogin={() => setShowAuth(true)}
         onLogout={handleLogout}
+        onSearch={handleSearch}
       />
       {showFilters && (
         <FilterPanel
@@ -160,6 +178,7 @@ function App() {
       {!loading && results.length > 0 && (
         <ResultsList
           results={results}
+          title={resultsTitle}
           session={session}
           pinnedIds={pinnedIds}
           onSeen={markSeen}

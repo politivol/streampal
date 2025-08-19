@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabaseClient.js';
 
 export default function ResultsList({
   results,
+  title = 'Results',
   session,
   pinnedIds = new Set(),
   onSeen,
@@ -47,7 +48,7 @@ export default function ResultsList({
   return (
     <div className="panel">
       <div className="row row--actions">
-        <h2>Results</h2>
+        <h2>{title}</h2>
         <sl-button variant="neutral" type="button" onClick={onRollAgain}>
           Roll Again
         </sl-button>
