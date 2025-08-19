@@ -1,6 +1,0 @@
-.grid{display:grid;gap:var(--space-6);grid-template-columns:repeat(auto-fill, minmax(160px, 1fr))}
-.card{display:flex;flex-direction:column;border:1px solid #eee;border-radius:var(--radius);overflow:hidden;background:#fff}
-.card__media{aspect-ratio:2/3;background:#f6f6f6}
-.card__body{padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-2)}
-.card__title{font-weight:600;font-size:clamp(.95rem, 1.6vw, 1.05rem);line-height:1.25}
-.card__meta{font-size:.85rem;color:var(--text-muted)}

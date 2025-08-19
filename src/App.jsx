@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import SeenList from './components/SeenList.jsx';
+import Header from './components/Header.jsx';
 import FilterPanel from './components/FilterPanel.jsx';
 import ResultsList from './components/ResultsList.jsx';
 import SeriesPanel from './components/SeriesPanel.jsx';
@@ -106,6 +107,12 @@ function App() {
 
   return (
     <div className="container">
+      <Header
+        session={session}
+        onOpenFilters={() => setShowFilters(true)}
+        onOpenSeen={() => setShowSeen(true)}
+        onLogin={() => setShowAuth(true)}
+      />
       {showFilters && (
         <FilterPanel
           filters={filters}
