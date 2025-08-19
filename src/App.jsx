@@ -28,32 +28,58 @@ function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
     return () => subscription.unsubscribe();
   }, []);
 
-  const loadResults = async (mediaType) => {
-    const data = await fetchTrending(mediaType);
+  const loadResults = async (f = filters) => {
+    const data = await fetchTrending(f.mediaType || 'movie');
     const filtered = data.filter((r) => !pinnedIds.has(r.id));
-    const detailed = await Promise.all(
-      filtered.map((r) => fetchDetails(r.id).catch(() => null))
-    );
+    const detailed = (
+      await Promise.all(filtered.map((r) => fetchDetails(r.id).catch(() => null)))
+    ).filter(Boolean);
+    const applied = detailed.filter((r) => {
+      if (f.genres.length && !f.genres.every((g) => r.genres?.includes(g))) return false;
+      if (f.releaseDate !== 'any' && r.releaseDate) {
+        const year = new Date(r.releaseDate).getFullYear();
+        const current = new Date().getFullYear();
+        const diff = current - year;
+        if (f.releaseDate === 'past_year' && diff > 1) return false;
+        if (f.releaseDate === 'older' && diff <= 1) return false;
+      }
+      if (f.providers.length && !f.providers.some((p) => r.streaming?.includes(p))) return false;
+      if (f.seriesOnly && !r.series) return false;
+      if (f.minTmdb && (r.ratings.tmdb ?? 0) < parseFloat(f.minTmdb)) return false;
+      if (
+        f.minRotten &&
+        (r.ratings.rottenTomatoes ?? 0) < parseInt(f.minRotten, 10)
+      )
+        return false;
+      return true;
+    });
     setResults((prev) => {
       const pinned = prev.filter((r) => pinnedIds.has(r.id));
-      return [...pinned, ...detailed.filter(Boolean)];
+      return [...pinned, ...applied];
     });
   };
+
+  useEffect(() => {
+    loadResults(filters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const applyFilters = async (f) => {
     setFilters(f);
     setShowFilters(false);
-    await loadResults(f.mediaType || 'movie');
+    await loadResults(f);
   };
 
   const rollAgain = async () => {
-    await loadResults(filters.mediaType || 'movie');
+    await loadResults(filters);
   };
 
   const markSeen = (id) => {
