@@ -5,16 +5,19 @@ import { toast } from '../lib/toast.js';
 export default function AuthPanel({ onSession, onClose }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [mode, setMode] = useState('magic');
+  const [mode, setMode] = useState('sign_in');
 
-  const sendMagicLink = async (e) => {
+  const signIn = async (e) => {
     e.preventDefault();
-    const { error } = await supabase.auth.signInWithOtp({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
-      options: { emailRedirectTo: import.meta.env.VITE_SITE_URL },
+      password,
     });
     if (error) toast(error.message, 'danger', 5000, 'exclamation-octagon');
-    else toast('Check your email for the magic link.', 'success', 5000, 'info-circle');
+    else {
+      toast('Signed in successfully.', 'success', 5000, 'check-circle');
+      onSession?.(data.session);
+    }
   };
 
   const signUp = async (e) => {
@@ -66,15 +69,21 @@ export default function AuthPanel({ onSession, onClose }) {
           </sl-button>
         </form>
       ) : (
-        <form onSubmit={sendMagicLink} className="row row--inputs">
+        <form onSubmit={signIn} className="row row--inputs">
           <input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
           <sl-button variant="primary" type="submit">
-            Send Magic Link
+            Sign In
           </sl-button>
         </form>
       )}
@@ -100,7 +109,7 @@ export default function AuthPanel({ onSession, onClose }) {
             <sl-button
               variant="neutral"
               type="button"
-              onClick={() => setMode('magic')}
+              onClick={() => setMode('sign_in')}
             >
               Sign in
             </sl-button>
