@@ -28,11 +28,11 @@ export default function ResultsList({
         .eq('tmdb_id', r.id)
         .eq('list', 'pinned');
     } else {
-      const seen = JSON.parse(localStorage.getItem('seen') || '[]');
-      if (!seen.includes(r.id)) seen.push(r.id);
-      localStorage.setItem('seen', JSON.stringify(seen));
-      const pinned = (JSON.parse(localStorage.getItem('pinned') || '[]')).filter((id) => id !== r.id);
-      localStorage.setItem('pinned', JSON.stringify(pinned));
+      const seen = JSON.parse(sessionStorage.getItem('seen') || '[]');
+      if (!seen.find((i) => i.id === r.id)) seen.push({ id: r.id, payload: { title: r.title } });
+      sessionStorage.setItem('seen', JSON.stringify(seen));
+      const pinned = (JSON.parse(sessionStorage.getItem('pinned') || '[]')).filter((i) => i.id !== r.id);
+      sessionStorage.setItem('pinned', JSON.stringify(pinned));
     }
   };
 
@@ -59,9 +59,10 @@ export default function ResultsList({
           }, { onConflict: 'user_id,tmdb_id,list' });
       }
     } else {
-      const pinned = new Set(JSON.parse(localStorage.getItem('pinned') || '[]'));
-      if (pinned.has(r.id)) pinned.delete(r.id); else pinned.add(r.id);
-      localStorage.setItem('pinned', JSON.stringify(Array.from(pinned)));
+      const pinned = JSON.parse(sessionStorage.getItem('pinned') || '[]');
+      const idx = pinned.findIndex((i) => i.id === r.id);
+      if (idx >= 0) pinned.splice(idx, 1); else pinned.push({ id: r.id, payload: { title: r.title } });
+      sessionStorage.setItem('pinned', JSON.stringify(pinned));
     }
   };
 

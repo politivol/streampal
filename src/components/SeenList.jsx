@@ -2,49 +2,72 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
 import Search from './Search.jsx';
 
-export default function SeenList({ session, onSession }) {
+export default function SeenList({ session, onSession, onClose }) {
   const [seenItems, setSeenItems] = useState([]);
   const [pinnedItems, setPinnedItems] = useState([]);
+  const [open, setOpen] = useState(false);
 
   const fetchItems = async () => {
-    const { data, error } = await supabase
-      .from('user_items')
-      .select('id,list,payload')
-      .eq('user_id', session.user.id)
-      .in('list', ['seen', 'pinned'])
-      .order('id');
-    if (!error && data) {
-      setSeenItems(data.filter((i) => i.list === 'seen'));
-      setPinnedItems(data.filter((i) => i.list === 'pinned'));
+    if (session) {
+      const { data, error } = await supabase
+        .from('user_items')
+        .select('id,list,payload')
+        .eq('user_id', session.user.id)
+        .in('list', ['seen', 'pinned'])
+        .order('id');
+      if (!error && data) {
+        setSeenItems(data.filter((i) => i.list === 'seen'));
+        setPinnedItems(data.filter((i) => i.list === 'pinned'));
+      }
+    } else {
+      const seen = JSON.parse(sessionStorage.getItem('seen') || '[]');
+      const pinned = JSON.parse(sessionStorage.getItem('pinned') || '[]');
+      setSeenItems(seen);
+      setPinnedItems(pinned);
     }
   };
 
   useEffect(() => {
     fetchItems();
+    setOpen(true);
   }, [session]);
 
   const addItem = async (movie) => {
     if (!movie) return;
-    const { error } = await supabase
-      .from('user_items')
-      .insert({
-        user_id: session.user.id,
-        tmdb_id: movie.imdbID,
-        item_type: 'movie',
-        list: 'seen',
-        payload: { title: movie.Title },
-      });
-    if (!error) fetchItems();
+    if (session) {
+      const { error } = await supabase
+        .from('user_items')
+        .insert({
+          user_id: session.user.id,
+          tmdb_id: movie.imdbID,
+          item_type: 'movie',
+          list: 'seen',
+          payload: { title: movie.Title },
+        });
+      if (!error) fetchItems();
+    } else {
+      const seen = JSON.parse(sessionStorage.getItem('seen') || '[]');
+      seen.push({ id: movie.imdbID, payload: { title: movie.Title } });
+      sessionStorage.setItem('seen', JSON.stringify(seen));
+      setSeenItems(seen);
+    }
   };
 
   const removeItem = async (id, list) => {
-    const { error } = await supabase
-      .from('user_items')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', session.user.id)
-      .eq('list', list);
-    if (!error) fetchItems();
+    if (session) {
+      const { error } = await supabase
+        .from('user_items')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', session.user.id)
+        .eq('list', list);
+      if (!error) fetchItems();
+    } else {
+      const key = list === 'seen' ? 'seen' : 'pinned';
+      const items = JSON.parse(sessionStorage.getItem(key) || '[]').filter((m) => m.id !== id);
+      sessionStorage.setItem(key, JSON.stringify(items));
+      if (key === 'seen') setSeenItems(items); else setPinnedItems(items);
+    }
   };
 
   const signOut = async () => {
@@ -53,10 +76,19 @@ export default function SeenList({ session, onSession }) {
   };
 
   return (
-    <div className="panel">
+    <div className={`panel side-panel ${open ? 'open' : ''}`}>
       <div className="row row--actions">
         <h2>Your Lists</h2>
-        <button className="btn secondary" type="button" onClick={signOut}>Sign Out</button>
+        <div className="row">
+          {session && (
+            <button className="btn secondary" type="button" onClick={signOut}>
+              Sign Out
+            </button>
+          )}
+          <button className="btn secondary" type="button" onClick={onClose}>
+            Close
+          </button>
+        </div>
       </div>
       <Search onSelect={addItem} />
       <h3>Seen Movies</h3>

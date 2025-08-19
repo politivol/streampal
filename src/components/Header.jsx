@@ -1,6 +1,6 @@
 import Search from './Search.jsx';
 
-export default function Header({ session, onSession, onOpenFilters }) {
+export default function Header({ session, onOpenFilters, onOpenSeen }) {
   return (
     <header>
       <div className="header-bar">
@@ -22,7 +22,7 @@ export default function Header({ session, onSession, onOpenFilters }) {
           <span className="auth-status">
             {session ? 'Logged in!' : 'Log in / Create account'}
           </span>
-          <button className="btn secondary" type="button">
+          <button className="btn secondary" type="button" onClick={onOpenSeen}>
             Seen
           </button>
         </div>
