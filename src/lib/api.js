@@ -1,5 +1,6 @@
 const TMDB_API_KEY = 'f653b3ff00c4561dfaebe995836a28e7';
 const OMDB_PROXY = import.meta.env.VITE_OMDB_PROXY_URL;
+const SB_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 function normalizeProviderName(name) {
   return name.replace(/\s+with ads/i, '').trim();
@@ -49,14 +50,17 @@ export async function fetchDetails(tmdbId) {
     if (OMDB_PROXY) {
       // proxy must include the apikey server-side; we call the proxy via HTTPS
       const url = `${OMDB_PROXY.replace(/\/$/, '')}?i=${encodeURIComponent(imdbId)}`;
-      const omdbRes = await fetch(url);
+      const headers = {};
+      if (SB_ANON) {
+        headers.apikey = SB_ANON;
+        headers.Authorization = `Bearer ${SB_ANON}`;
+      }
+      const omdbRes = await fetch(url, { headers });
       if (omdbRes.ok) {
         omdbData = await omdbRes.json();
       }
     } else {
       // OMDb proxy not configured; skip OMDb fetch to avoid exposing keys in client
-      // You can configure VITE_OMDB_PROXY_URL in the client environment to enable this.
-      // console.warn('OMDB proxy not configured; skipping OMDb fetch');
     }
   }
 

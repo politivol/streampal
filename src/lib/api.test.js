@@ -1,15 +1,18 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { fetchTrending, fetchDetails } from './api';
 
 const originalFetch = global.fetch;
 
 afterEach(() => {
   global.fetch = originalFetch;
   vi.restoreAllMocks();
+  vi.unstubAllEnvs();
 });
 
 describe('fetchTrending', () => {
   it('fetches and normalizes trending data', async () => {
+    vi.resetModules();
+    const { fetchTrending } = await import('./api');
+
     const mockResponse = {
       results: [
         { id: 1, title: 'Movie', poster_path: '/p.jpg', media_type: 'movie' },
@@ -41,6 +44,11 @@ describe('fetchTrending', () => {
 
 describe('fetchDetails', () => {
   it('combines TMDB and OMDb data and normalizes output', async () => {
+    vi.resetModules();
+    vi.stubEnv('VITE_OMDB_PROXY_URL', 'https://example.com/omdb-proxy');
+    vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'sb-anon-key');
+    const { fetchDetails } = await import('./api');
+
     const tmdbData = {
       id: 1,
       title: 'Movie 1',
@@ -78,7 +86,11 @@ describe('fetchDetails', () => {
     const result = await fetchDetails(1);
 
     expect(fetchMock).toHaveBeenNthCalledWith(1, expect.stringContaining('/movie/1'));
-    expect(fetchMock).toHaveBeenNthCalledWith(2, expect.stringContaining('omdbapi.com'));
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining('https://example.com/omdb-proxy?i=tt123'),
+      expect.anything()
+    );
 
     expect(result).toEqual({
       id: 1,
