@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import SeenList from './components/SeenList.jsx';
-import Header from './components/Header.jsx';
 import FilterPanel from './components/FilterPanel.jsx';
 import ResultsList from './components/ResultsList.jsx';
 import SeriesPanel from './components/SeriesPanel.jsx';
@@ -41,6 +40,20 @@ function App() {
   useEffect(() => {
     if (session) setShowAuth(false);
   }, [session]);
+
+  useEffect(() => {
+    const openFilters = () => setShowFilters(true);
+    const openLogin = () => setShowAuth(true);
+    const openAccount = () => setShowSeen(true);
+    window.addEventListener('open-filters', openFilters);
+    window.addEventListener('open-login', openLogin);
+    window.addEventListener('open-account', openAccount);
+    return () => {
+      window.removeEventListener('open-filters', openFilters);
+      window.removeEventListener('open-login', openLogin);
+      window.removeEventListener('open-account', openAccount);
+    };
+  }, []);
 
   const loadResults = async (f = filters) => {
     const data = await fetchTrending(f.mediaType || 'movie');
@@ -107,12 +120,6 @@ function App() {
 
   return (
     <div className="container">
-      <Header
-        session={session}
-        onOpenFilters={() => setShowFilters(true)}
-        onOpenSeen={() => setShowSeen(true)}
-        onLogin={() => setShowAuth(true)}
-      />
       {showFilters && (
         <FilterPanel
           filters={filters}
