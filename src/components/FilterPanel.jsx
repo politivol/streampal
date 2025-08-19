@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
+import {
+  normalizeProviderName,
+  US_STREAMING_PROVIDERS,
+} from '../lib/providers.js';
 
 const TMDB_API_KEY = 'e20c40a6be42cbc9d98052ca3db76926';
-
-function normalizeProviderName(name) {
-  return name.replace(/\s+with ads/i, '').trim();
-}
 
 export default function FilterPanel({ filters = {}, onApply, onClose }) {
   const [mediaType, setMediaType] = useState(filters.mediaType || 'movie');
@@ -35,7 +35,9 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
           `https://api.themoviedb.org/3/watch/providers/movie?api_key=${TMDB_API_KEY}&watch_region=US`
         );
         const provData = await provRes.json();
-        const provNames = (provData.results || []).map((p) => normalizeProviderName(p.provider_name));
+        const provNames = (provData.results || [])
+          .map((p) => normalizeProviderName(p.provider_name))
+          .filter((p) => US_STREAMING_PROVIDERS.includes(p));
         setProviderOptions(Array.from(new Set(provNames)));
       } catch (_) {
         // ignore
