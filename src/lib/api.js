@@ -30,6 +30,19 @@ export async function fetchTrending(mediaType, timeWindow = 'week') {
   }));
 }
 
+export async function searchTitles(query, mediaType = 'multi') {
+  const res = await fetch(
+    `https://api.themoviedb.org/3/search/${mediaType}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`
+  );
+  const data = await res.json();
+  return (data.results || []).map((r) => ({
+    id: r.id,
+    title: r.title || r.name || '',
+    artwork: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : null,
+    mediaType: r.media_type || mediaType,
+  }));
+}
+
 export async function fetchDetails(tmdbId) {
   const endpoints = ['movie', 'tv'];
   let detailData;

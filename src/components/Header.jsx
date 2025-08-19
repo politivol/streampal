@@ -1,10 +1,24 @@
 import Search from './Search.jsx';
 
-export default function Header({ session, onOpenFilters, onOpenSeen, onLogin, onLogout }) {
+export default function Header({
+  session,
+  onOpenFilters,
+  onOpenSeen,
+  onLogin,
+  onLogout,
+  onSearch,
+}) {
   return (
     <header>
       <div className="header-bar">
-        <a href="/" className="header-brand">
+        <a
+          href="#"
+          className="header-brand"
+          onClick={(e) => {
+            e.preventDefault();
+            window.location.reload();
+          }}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 640 160"
@@ -43,7 +57,7 @@ export default function Header({ session, onOpenFilters, onOpenSeen, onLogin, on
           </svg>
         </a>
         <div className="header-search">
-          <Search />
+          <Search onSearch={onSearch} />
         </div>
         <sl-dropdown class="header-menu">
           <sl-button slot="trigger" caret>Menu</sl-button>

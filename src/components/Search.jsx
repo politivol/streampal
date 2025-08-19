@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
+import { searchTitles } from '../lib/api.js';
 
-export default function Search({ onSelect }) {
+export default function Search({ onSearch }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
 
@@ -9,15 +10,10 @@ export default function Search({ onSelect }) {
       setResults([]);
       return;
     }
-    const controller = new AbortController();
     const fetchResults = async () => {
       try {
-        const res = await fetch(
-          `${import.meta.env.VITE_OMDB_PROXY_URL}?s=${encodeURIComponent(query)}&type=movie`,
-          { signal: controller.signal }
-        );
-        const data = await res.json();
-        setResults(data.Search || []);
+        const data = await searchTitles(query, 'multi');
+        setResults(data);
       } catch (_) {
         // ignore
       }
@@ -25,14 +21,22 @@ export default function Search({ onSelect }) {
     const id = setTimeout(fetchResults, 300);
     return () => {
       clearTimeout(id);
-      controller.abort();
     };
   }, [query]);
 
   const handleSelect = (item) => {
-    onSelect?.(item);
+    onSearch?.(item.title);
     setQuery('');
     setResults([]);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && query.trim()) {
+      e.preventDefault();
+      onSearch?.(query.trim());
+      setQuery('');
+      setResults([]);
+    }
   };
 
   return (
@@ -42,13 +46,14 @@ export default function Search({ onSelect }) {
         placeholder="Search movies..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={handleKeyDown}
       />
       {results.length > 0 && (
         <ul className="search-results">
           {results.map((r) => (
-            <li key={r.imdbID}>
+            <li key={r.id}>
               <sl-button variant="neutral" type="button" onClick={() => handleSelect(r)}>
-                {r.Title} ({r.Year})
+                {r.title}
               </sl-button>
             </li>
           ))}
@@ -57,4 +62,3 @@ export default function Search({ onSelect }) {
     </div>
   );
 }
-
