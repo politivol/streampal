@@ -25,6 +25,10 @@ function App() {
   const [results, setResults] = useState([]);
   const [pinnedIds, setPinnedIds] = useState(new Set());
   const [series, setSeries] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const startLoading = () => setLoading(true);
+  const stopLoading = () => setLoading(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -74,18 +78,29 @@ function App() {
   };
 
   useEffect(() => {
-    loadResults(filters);
+    startLoading();
+    loadResults(filters).finally(stopLoading);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const applyFilters = async (f) => {
     setFilters(f);
     setShowFilters(false);
-    await loadResults(f);
+    startLoading();
+    try {
+      await loadResults(f);
+    } finally {
+      stopLoading();
+    }
   };
 
   const rollAgain = async () => {
-    await loadResults(filters);
+    startLoading();
+    try {
+      await loadResults(filters);
+    } finally {
+      stopLoading();
+    }
   };
 
   const markSeen = (id) => {
@@ -120,7 +135,23 @@ function App() {
           onClose={() => setShowFilters(false)}
         />
       )}
-      {results.length > 0 && (
+      {loading && (
+        <div className="panel">
+          <div className="loading-spinner">
+            <sl-spinner></sl-spinner>
+          </div>
+          <ul className="results-list">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <li key={i}>
+                <sl-card class="movie-card">
+                  <sl-skeleton effect="pulse" style={{ height: '300px' }}></sl-skeleton>
+                </sl-card>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {!loading && results.length > 0 && (
         <ResultsList
           results={results}
           session={session}
