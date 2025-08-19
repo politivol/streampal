@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-const TMDB_API_KEY = 'f653b3ff00c4561dfaebe995836a28e7';
+const TMDB_API_KEY = 'e20c40a6be42cbc9d98052ca3db76926';
 
 function normalizeProviderName(name) {
   return name.replace(/\s+with ads/i, '').trim();

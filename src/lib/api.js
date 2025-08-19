@@ -1,4 +1,4 @@
-const TMDB_API_KEY = 'f653b3ff00c4561dfaebe995836a28e7';
+const TMDB_API_KEY = 'e20c40a6be42cbc9d98052ca3db76926';
 const OMDB_PROXY = import.meta.env.VITE_OMDB_PROXY_URL;
 const SB_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
