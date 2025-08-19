@@ -91,7 +91,7 @@ export default function AuthPanel({ onSession, onClose }) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <sl-button variant="primary" type="submit">
+          <sl-button variant="primary" type="submit" onClick={signUp}>
             Sign Up
           </sl-button>
         </form>
@@ -109,7 +109,7 @@ export default function AuthPanel({ onSession, onClose }) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <sl-button variant="primary" type="submit">
+          <sl-button variant="primary" type="submit" onClick={signIn}>
             Sign In
           </sl-button>
         </form>
