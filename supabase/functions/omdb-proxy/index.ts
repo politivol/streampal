@@ -1,15 +1,15 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 
 const OMDB_KEY = Deno.env.get("OMDB_KEY");
-const ALLOWED_ORIGIN = "https://politivol.github.io/streampal/";
 
 if (!OMDB_KEY) {
   console.error("OMDB_KEY is not set");
 }
 
 serve(async (req) => {
+  const origin = req.headers.get("origin") || "*";
   const headers = new Headers({
-    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+    "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "GET, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
   });
