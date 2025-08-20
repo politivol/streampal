@@ -132,6 +132,27 @@ function App() {
     }
   };
 
+  const resetFilters = async () => {
+    const defaults = {
+      mediaType: 'movie',
+      genres: [],
+      releaseDate: 'any',
+      providers: [],
+      seriesOnly: false,
+      minTmdb: 0,
+      minRotten: 0,
+      isGeneralSearch: true,
+    };
+    setFilters(defaults);
+    setShowFilters(false);
+    startLoading();
+    try {
+      await loadResults(defaults);
+    } finally {
+      stopLoading();
+    }
+  };
+
   const rollAgain = async () => {
     startLoading();
     try {
@@ -193,6 +214,7 @@ function App() {
           filters={filters}
           onApply={applyFilters}
           onClose={() => setShowFilters(false)}
+          onReset={resetFilters}
         />
       )}
       {loading && (

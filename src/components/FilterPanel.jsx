@@ -7,7 +7,7 @@ import config from '../lib/config.js';
 
 const TMDB_API_KEY = config.tmdbApiKey;
 
-export default function FilterPanel({ filters = {}, onApply, onClose }) {
+export default function FilterPanel({ filters = {}, onApply, onClose, onReset }) {
   const [mediaType, setMediaType] = useState(filters.mediaType || 'movie');
   const [genreOptions, setGenreOptions] = useState([]);
   const [selectedGenres, setSelectedGenres] = useState(filters.genres || []);
@@ -78,8 +78,37 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
       seriesOnly,
       minTmdb,
       minRotten,
-      isGeneralSearch: selectedGenres.length === 0 && providers.length === 0 && releaseDate === 'any' && !seriesOnly && minTmdb === 0 && minRotten === 0,
+      isGeneralSearch:
+        selectedGenres.length === 0 &&
+        providers.length === 0 &&
+        releaseDate === 'any' &&
+        !seriesOnly &&
+        minTmdb === 0 &&
+        minRotten === 0,
     });
+  };
+
+  const reset = () => {
+    const defaults = {
+      mediaType: 'movie',
+      genres: [],
+      releaseDate: 'any',
+      providers: [],
+      seriesOnly: false,
+      minTmdb: 0,
+      minRotten: 0,
+      isGeneralSearch: true,
+    };
+    setMediaType(defaults.mediaType);
+    setSelectedGenres(defaults.genres);
+    setGenreSearch('');
+    setReleaseDate(defaults.releaseDate);
+    setProviders(defaults.providers);
+    setProviderSearch('');
+    setSeriesOnly(defaults.seriesOnly);
+    setMinTmdb(defaults.minTmdb);
+    setMinRotten(defaults.minRotten);
+    onReset?.(defaults);
   };
 
   // Always allow search - no longer disable based on loading or selections
@@ -258,14 +287,19 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
           </div>
         </label>
       </div>
-      <sl-button
-        variant="primary"
-        type="button"
-        disabled={disableSearch}
-        onClick={apply}
-      >
-        {isGeneralSearch ? 'Discover Random Content' : 'Search with Filters'}
-      </sl-button>
+      <div className="row row--actions">
+        <sl-button variant="neutral" type="button" onClick={reset}>
+          Reset Filters
+        </sl-button>
+        <sl-button
+          variant="primary"
+          type="button"
+          disabled={disableSearch}
+          onClick={apply}
+        >
+          {isGeneralSearch ? 'Discover Random Content' : 'Search with Filters'}
+        </sl-button>
+      </div>
     </aside>
   );
 }
