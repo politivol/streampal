@@ -65,7 +65,16 @@ export default function AuthPanel({ onSession, onClose }) {
       }
     };
     document.body.appendChild(script);
-    return () => {};
+    return () => {
+      // Remove the Google SDK script
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+      // Remove the rendered Google button
+      if (googleButtonRef.current) {
+        googleButtonRef.current.innerHTML = '';
+      }
+    };
   }, []);
 
   return (
