@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
 import Search from './Search.jsx';
 import { toast } from '../lib/toast.js';
@@ -7,6 +7,7 @@ export default function SeenList({ session, onClose }) {
   const [seenItems, setSeenItems] = useState([]);
   const [pinnedItems, setPinnedItems] = useState([]);
   const [open, setOpen] = useState(false);
+  const activeRef = useRef(true);
 
   const fetchItems = async () => {
     if (session) {
@@ -16,6 +17,7 @@ export default function SeenList({ session, onClose }) {
         .eq('user_id', session.user.id)
         .eq('list', 'seen')
         .order('id');
+      if (!activeRef.current) return;
       if (error) {
         toast(error.message, 'danger', 5000, 'exclamation-octagon');
       } else if (data) {
@@ -23,15 +25,18 @@ export default function SeenList({ session, onClose }) {
       }
     } else {
       const seen = JSON.parse(sessionStorage.getItem('seen') || '[]');
-      setSeenItems(seen);
+      if (activeRef.current) setSeenItems(seen);
     }
     const pinned = JSON.parse(sessionStorage.getItem('pinned') || '[]');
-    setPinnedItems(pinned);
+    if (activeRef.current) setPinnedItems(pinned);
   };
 
   useEffect(() => {
     fetchItems();
     setOpen(true);
+    return () => {
+      activeRef.current = false;
+    };
   }, [session]);
 
   const addItem = async (item) => {
