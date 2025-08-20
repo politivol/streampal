@@ -51,3 +51,23 @@ create policy "Users can update their own items" on user_items
 create policy "Users can delete their own items" on user_items
   for delete
   using (auth.uid() = user_id);
+
+-- Privileges for API roles (no superuser grants)
+-- Allow API roles to use the public schema
+grant usage on schema public to anon, authenticated;
+
+-- Existing tables: explicit privileges
+grant select on table profiles to anon; -- public profiles read access per policy
+grant select, insert, update, delete on table profiles to authenticated;
+grant select, insert, update, delete on table user_items to authenticated;
+
+-- Sequences (for bigserial IDs)
+grant usage, select on all sequences in schema public to authenticated;
+
+-- Default privileges for future tables/sequences created in public
+alter default privileges in schema public
+  grant select on tables to anon;
+alter default privileges in schema public
+  grant select, insert, update, delete on tables to authenticated;
+alter default privileges in schema public
+  grant usage, select on sequences to authenticated;
