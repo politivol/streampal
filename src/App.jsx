@@ -48,12 +48,47 @@ function App() {
   }, [session]);
 
   const loadResults = async (f = filters) => {
-    const data = await fetchTrending(f.mediaType || 'movie');
+    let data;
+    let resultsTitle = 'Trending';
+    
+    // If it's a general search (no filters applied), fetch diverse content
+    if (f.isGeneralSearch) {
+      // Fetch a mix of trending content from different time periods for variety
+      const [weeklyTrending, dailyTrending] = await Promise.all([
+        fetchTrending(f.mediaType || 'movie', 'week'),
+        fetchTrending(f.mediaType || 'movie', 'day')
+      ]);
+      
+      // Combine and shuffle for variety
+      const combined = [...weeklyTrending, ...dailyTrending];
+      const uniqueById = combined.reduce((acc, item) => {
+        acc[item.id] = item;
+        return acc;
+      }, {});
+      data = Object.values(uniqueById);
+      
+      // Shuffle the array for random order
+      for (let i = data.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [data[i], data[j]] = [data[j], data[i]];
+      }
+      
+      resultsTitle = `Random ${f.mediaType === 'tv' ? 'TV Shows' : 'Movies'}`;
+    } else {
+      // Regular filtered search - fetch trending and apply filters
+      data = await fetchTrending(f.mediaType || 'movie');
+      resultsTitle = 'Trending';
+    }
+    
     const filtered = data.filter((r) => !pinnedIds.has(r.id));
     const detailed = (
       await Promise.all(filtered.map((r) => fetchDetails(r.id).catch(() => null)))
     ).filter(Boolean);
+    
     const applied = detailed.filter((r) => {
+      // Skip filtering if it's a general search
+      if (f.isGeneralSearch) return true;
+      
       if (f.genres.length && !f.genres.every((g) => r.genres?.includes(g))) return false;
       if (f.releaseDate !== 'any' && r.releaseDate) {
         const year = new Date(r.releaseDate).getFullYear();
@@ -72,11 +107,12 @@ function App() {
         return false;
       return true;
     });
+    
     setResults((prev) => {
       const pinned = prev.filter((r) => pinnedIds.has(r.id));
       return [...pinned, ...applied];
     });
-    setResultsTitle('Trending');
+    setResultsTitle(resultsTitle);
   };
 
   useEffect(() => {

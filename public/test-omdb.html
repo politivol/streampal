@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OMDB Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #0f1115; color: #e8ecf1; }
+        .console { background: #171a21; padding: 15px; border-radius: 8px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>🍅 OMDB Integration Test</h1>
+    <div id="output" class="console">Running tests...\n</div>
+    
+    <script type="module">
+        // Redirect console.log to the page
+        const output = document.getElementById('output');
+        const originalLog = console.log;
+        console.log = (...args) => {
+            originalLog(...args);
+            output.textContent += args.join(' ') + '\n';
+        };
+        
+        async function testOMDBIntegration() {
+            console.log('🍅 Testing OMDB Integration for Rotten Tomatoes...');
+            console.log('');
+            
+            // First, test configuration
+            console.log('1. Checking environment configuration:');
+            console.log(`   VITE_OMDB_PROXY_URL: ${import.meta.env.VITE_OMDB_PROXY_URL || 'NOT SET'}`);
+            console.log(`   VITE_SUPABASE_ANON_KEY: ${import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET'}`);
+            
+            if (!import.meta.env.VITE_OMDB_PROXY_URL) {
+                console.log('❌ OMDB proxy URL not configured');
+                return;
+            }
+            
+            // Test with a well-known movie that should have RT scores
+            const testMovies = [
+                { imdbId: 'tt0468569', title: 'The Dark Knight' },
+                { imdbId: 'tt0111161', title: 'The Shawshank Redemption' }
+            ];
+            
+            console.log('');
+            console.log('2. Testing OMDB proxy with known movies:');
+            
+            for (const movie of testMovies) {
+                console.log('');
+                console.log(`   Testing: ${movie.title} (${movie.imdbId})`);
+                
+                try {
+                    const url = `${import.meta.env.VITE_OMDB_PROXY_URL.replace(/\/$/, '')}?i=${encodeURIComponent(movie.imdbId)}`;
+                    const headers = {};
+                    
+                    if (import.meta.env.VITE_SUPABASE_ANON_KEY) {
+                        headers.apikey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+                        headers.Authorization = `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`;
+                    }
+                    
+                    console.log(`   Request URL: ${url}`);
+                    
+                    const response = await fetch(url, { headers });
+                    console.log(`   Status: ${response.status} ${response.statusText}`);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log(`   ✅ Success! Movie: ${data.Title} (${data.Year})`);
+                        
+                        if (data.Ratings) {
+                            console.log(`   📊 Found ${data.Ratings.length} ratings:`);
+                            data.Ratings.forEach(rating => {
+                                console.log(`      - ${rating.Source}: ${rating.Value}`);
+                            });
+                            
+                            const rt = data.Ratings.find(r => r.Source === 'Rotten Tomatoes');
+                            if (rt) {
+                                const score = parseInt(rt.Value.replace('%', ''), 10);
+                                console.log(`   🍅 Rotten Tomatoes: ${rt.Value} (parsed as ${score})`);
+                            } else {
+                                console.log(`   ⚠️  No Rotten Tomatoes rating found`);
+                            }
+                        } else {
+                            console.log(`   ❌ No ratings array found`);
+                        }
+                    } else {
+                        const text = await response.text();
+                        console.log(`   ❌ Failed: ${text}`);
+                    }
+                } catch (error) {
+                    console.log(`   ❌ Error: ${error.message}`);
+                }
+            }
+            
+            // Test the actual API function
+            console.log('');
+            console.log('3. Testing actual fetchDetails function:');
+            
+            try {
+                // Import the fetchDetails function
+                const { fetchDetails } = await import('/streampal/src/lib/api.js');
+                
+                // Test with The Dark Knight (TMDB ID: 155)
+                console.log('   Testing fetchDetails with The Dark Knight...');
+                const result = await fetchDetails(155);
+                
+                console.log(`   Movie: ${result.title}`);
+                console.log(`   TMDB Rating: ${result.ratings.tmdb}`);
+                console.log(`   RT Rating: ${result.ratings.rottenTomatoes || 'NOT FOUND'}`);
+                
+                if (result.ratings.rottenTomatoes) {
+                    console.log('   ✅ Rotten Tomatoes integration working!');
+                } else {
+                    console.log('   ❌ Rotten Tomatoes score not retrieved');
+                }
+                
+            } catch (error) {
+                console.log(`   ❌ Error testing fetchDetails: ${error.message}`);
+            }
+            
+            console.log('');
+            console.log('🏁 Test completed!');
+        }
+        
+        // Run the test
+        testOMDBIntegration().catch(error => {
+            console.log(`❌ Test failed: ${error.message}`);
+        });
+    </script>
+</body>
+</html>

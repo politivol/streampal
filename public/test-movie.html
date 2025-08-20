@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Movie Details</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #0f1115; color: #e8ecf1; }
+        .result { background: #171a21; padding: 15px; border-radius: 8px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🎬 Testing Movie Details Fetch</h1>
+    <button onclick="testMovie()">Test The Dark Knight</button>
+    <div id="results"></div>
+    
+    <script type="module">
+        window.testMovie = async function() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<div class="result">Loading...</div>';
+            
+            try {
+                // Import the fetchDetails function
+                const { fetchDetails } = await import('/streampal/src/lib/api.js');
+                
+                console.log('Testing fetchDetails with The Dark Knight (TMDB ID: 155)...');
+                const result = await fetchDetails(155);
+                
+                console.log('Full result:', result);
+                
+                results.innerHTML = `
+                    <div class="result">
+                        <h3>${result.title}</h3>
+                        <p><strong>TMDB Rating:</strong> ${result.ratings.tmdb}</p>
+                        <p><strong>Rotten Tomatoes:</strong> ${result.ratings.rottenTomatoes || 'NOT FOUND'}</p>
+                        <p><strong>Release Date:</strong> ${result.releaseDate}</p>
+                        <p><strong>Runtime:</strong> ${result.runtime} minutes</p>
+                        <h4>Full Ratings Object:</h4>
+                        <pre>${JSON.stringify(result.ratings, null, 2)}</pre>
+                        <h4>Full Result:</h4>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                results.innerHTML = `<div class="result">❌ Error: ${error.message}</div>`;
+            }
+        };
+    </script>
+</body>
+</html>

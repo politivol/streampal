@@ -78,10 +78,14 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
       seriesOnly,
       minTmdb,
       minRotten,
+      isGeneralSearch: selectedGenres.length === 0 && providers.length === 0 && releaseDate === 'any' && !seriesOnly && minTmdb === 0 && minRotten === 0,
     });
   };
 
-  const disableSearch = loadingMeta && (selectedGenres.length > 0 || providers.length > 0);
+  // Always allow search - no longer disable based on loading or selections
+  const disableSearch = false;
+
+  const isGeneralSearch = selectedGenres.length === 0 && providers.length === 0 && releaseDate === 'any' && !seriesOnly && minTmdb === 0 && minRotten === 0;
 
   return (
     <aside className={`filter-panel ${open ? 'open' : ''}`}>
@@ -260,7 +264,7 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
         disabled={disableSearch}
         onClick={apply}
       >
-        Search
+        {isGeneralSearch ? 'Discover Random Content' : 'Search with Filters'}
       </sl-button>
     </aside>
   );
