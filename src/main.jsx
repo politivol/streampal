@@ -13,6 +13,18 @@ import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.j
 
 setBasePath('https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2/dist/');
 
+let toasts = document.getElementById('toasts');
+if (!toasts) {
+  toasts = document.createElement('div');
+  toasts.id = 'toasts';
+  document.body.appendChild(toasts);
+}
+Object.assign(toasts.style, {
+  position: 'fixed',
+  top: '1rem',
+  right: '1rem',
+});
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />
