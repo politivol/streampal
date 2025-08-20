@@ -33,14 +33,20 @@ export async function fetchSeriesEntries(series) {
       const data = await res.json();
       if (data?.Episodes) {
         for (const ep of data.Episodes) {
+          const released = ep.Released && ep.Released !== 'N/A' ? ep.Released : null;
           results.push({
             imdbID: ep.imdbID,
             title: `S${season}E${ep.Episode} - ${ep.Title}`,
+            releaseDate: released,
           });
         }
       }
     }
-    return results;
+    return results.sort((a, b) => {
+      const da = a.releaseDate ? new Date(a.releaseDate) : 0;
+      const db = b.releaseDate ? new Date(b.releaseDate) : 0;
+      return da - db;
+    });
   }
   return [];
 }
