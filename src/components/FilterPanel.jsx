@@ -161,7 +161,7 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
               type="range"
               min="0"
               max="100"
-              step="5"
+              step="1"
               value={minRotten}
               onChange={(e) => setMinRotten(parseInt(e.target.value, 10))}
             />
