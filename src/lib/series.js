@@ -1,6 +1,6 @@
 import config from './config.js';
 
-const TMDB_API_KEY = 'e20c40a6be42cbc9d98052ca3db76926';
+const TMDB_API_KEY = config.tmdbApiKey;
 const OMDB_PROXY = config.omdbProxyUrl;
 const SB_ANON = config.supabaseAnonKey;
 
