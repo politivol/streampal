@@ -3,6 +3,7 @@ import { fetchSeriesEntries } from '../lib/series.js';
 
 export default function SeriesPanel({ series, onClose }) {
   const [entries, setEntries] = useState([]);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -15,13 +16,14 @@ export default function SeriesPanel({ series, onClose }) {
       }
     };
     load();
+    setOpen(true);
     return () => {
       active = false;
     };
   }, [series]);
 
   return (
-    <div className="panel side-panel">
+    <div className={`panel side-panel ${open ? 'open' : ''}`}>
       <div className="row row--actions">
         <h2>{series?.name || 'Series'}</h2>
         <sl-button variant="neutral" type="button" onClick={onClose}>
