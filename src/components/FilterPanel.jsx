@@ -180,7 +180,7 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
                       checked={providers.includes(p)}
                       onChange={(e) =>
                         e.target.checked
-                          ? setProviders([...providers, p])
+                          ? setProviders(prev => [...prev, p])
                           : removeProvider(p)
                       }
                     />
