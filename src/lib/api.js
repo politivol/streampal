@@ -71,6 +71,10 @@ export async function fetchDetails(tmdbId) {
       const omdbRes = await fetch(url, { headers });
       if (omdbRes.ok) {
         omdbData = await omdbRes.json();
+        console.log(`✅ OMDB data for ${imdbId}:`, omdbData);
+      } else {
+        const errorText = await omdbRes.text();
+        console.warn(`❌ OMDB fetch failed for ${imdbId}:`, omdbRes.status, errorText);
       }
     } else {
       // OMDb proxy not configured; skip OMDb fetch to avoid exposing keys in client
@@ -80,6 +84,15 @@ export async function fetchDetails(tmdbId) {
   const providers = extractProviders(detailData['watch/providers']);
   const rt = omdbData?.Ratings?.find((r) => r.Source === 'Rotten Tomatoes')?.Value;
   const rotten = rt ? parseInt(rt.replace('%', ''), 10) : null;
+  
+  console.log(`🍅 Processing ratings for "${detailData.title || detailData.name}":`, {
+    imdbId,
+    hasOMDBData: !!omdbData.Title,
+    ratings: omdbData?.Ratings,
+    rottenTomatoesRaw: rt,
+    rottenTomatoesParsed: rotten,
+    tmdb: detailData.vote_average
+  });
 
   let series = null;
   if (detailData.belongs_to_collection) {
