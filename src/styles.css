@@ -150,11 +150,13 @@ body {
     gap: 1.5rem;
     grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
     align-items: stretch;
+    grid-auto-rows: 1fr;
   }
 
   .movie-card {
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     height: 100%;
   }
@@ -173,6 +175,7 @@ body {
       0 2px 4px -1px rgba(0, 0, 0, 0.06);
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
     transition: all 0.3s ease;
     height: 100%;
   }
@@ -187,8 +190,8 @@ body {
   .movie-card img[slot="image"] {
     display: block;
     width: 100%;
-    height: 420px;
-    object-fit: contain;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
     object-position: center;
     flex-shrink: 0;
     background: var(--color-surface-elevated);
@@ -199,6 +202,7 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
     padding: 1.5rem;
     gap: 0.75rem;
     background: var(--gradient-card);
@@ -447,10 +451,11 @@ body {
     .results-list {
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 1.25rem;
+      grid-auto-rows: 1fr;
     }
 
     .movie-card img[slot="image"] {
-      height: 380px;
+      aspect-ratio: 2 / 3;
     }
 
     .movie-card .card-body {
@@ -484,10 +489,11 @@ body {
       grid-template-columns: 1fr;
       gap: 1rem;
       margin: 1rem 0;
+      grid-auto-rows: 1fr;
     }
 
     .movie-card img[slot="image"] {
-      height: 350px;
+      aspect-ratio: 2 / 3;
       object-position: center center;
     }
 
@@ -624,6 +630,7 @@ body {
 
     .results-list {
       grid-template-columns: 1fr;
+      grid-auto-rows: 1fr;
     }
 
     .actions {
