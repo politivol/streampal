@@ -8,7 +8,7 @@ export default function AuthPanel({ onSession, onClose }) {
   const [mode, setMode] = useState('sign_in');
 
   const signIn = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -21,7 +21,7 @@ export default function AuthPanel({ onSession, onClose }) {
   };
 
   const signUp = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
