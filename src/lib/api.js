@@ -1,8 +1,9 @@
 import { normalizeProviderName, US_STREAMING_PROVIDERS } from './providers.js';
+import config from './config.js';
 
-const TMDB_API_KEY = 'e20c40a6be42cbc9d98052ca3db76926';
-const OMDB_PROXY = import.meta.env.VITE_OMDB_PROXY_URL;
-const SB_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const TMDB_API_KEY = config.tmdbApiKey;
+const OMDB_PROXY = config.omdbProxyUrl;
+const SB_ANON = config.supabaseAnonKey;
 
 function extractProviders(watch) {
   const us = watch?.results?.US;

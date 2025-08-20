@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
 import { toast } from '../lib/toast.js';
+import config from '../lib/config.js';
 
 export default function AuthPanel({ onSession, onClose }) {
   const [email, setEmail] = useState('');
@@ -25,7 +26,7 @@ export default function AuthPanel({ onSession, onClose }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: import.meta.env.VITE_SITE_URL },
+      options: { emailRedirectTo: config.siteUrl },
     });
     if (error) toast(error.message, 'danger', 5000, 'exclamation-octagon');
     else {
@@ -55,7 +56,7 @@ export default function AuthPanel({ onSession, onClose }) {
     script.onload = () => {
       if (window.google && googleButtonRef.current) {
         window.google.accounts.id.initialize({
-          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+          client_id: config.googleClientId,
           callback: handleGoogleCallback,
         });
         window.google.accounts.id.renderButton(
