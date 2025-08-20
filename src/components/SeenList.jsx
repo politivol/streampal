@@ -32,7 +32,6 @@ export default function SeenList({ session, onClose }) {
   };
 
   useEffect(() => {
-    activeRef.current = true;
     fetchItems();
     setOpen(true);
     return () => {
