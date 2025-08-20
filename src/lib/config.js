@@ -12,7 +12,7 @@ const missing = [];
 for (const [key, envKey] of Object.entries(REQUIRED_KEYS)) {
   const value = import.meta.env[envKey];
   if (!value) missing.push(envKey);
-  config[key] = value;
+  if (value) config[key] = value;
 }
 
 if (missing.length) {
