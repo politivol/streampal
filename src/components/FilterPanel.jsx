@@ -81,6 +81,8 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
     });
   };
 
+  const disableSearch = loadingMeta && (selectedGenres.length > 0 || providers.length > 0);
+
   return (
     <aside className={`filter-panel ${open ? 'open' : ''}`}>
       <div className="row row--actions">
@@ -255,7 +257,7 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
       <sl-button
         variant="primary"
         type="button"
-        disabled={loadingMeta}
+        disabled={disableSearch}
         onClick={apply}
       >
         Search
