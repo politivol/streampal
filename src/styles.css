@@ -615,8 +615,22 @@ body {
       height: 48px;
     }
 
-    .header-search {
+    /* Stack logo above search and menu on small screens */
+    .header-bar {
+      grid-template-columns: 1fr auto;
+    }
+
+    .header-brand {
       grid-column: 1 / -1;
+    }
+
+    .header-search {
+      grid-column: 1;
+    }
+
+    .header-menu {
+      grid-column: 2;
+      justify-self: end;
     }
 
     .filter-panel {
