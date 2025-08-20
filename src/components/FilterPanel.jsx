@@ -26,7 +26,6 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
     let active = true;
     const fetchMeta = async () => {
       try {
-        if (active) setLoadingMeta(true);
         const [movieGenresRes, tvGenresRes] = await Promise.all([
           fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${TMDB_API_KEY}`),
           fetch(`https://api.themoviedb.org/3/genre/tv/list?api_key=${TMDB_API_KEY}`),
