@@ -68,13 +68,17 @@ export default function ResultsList({
                     <span className="tag tag--runtime">Length: {r.runtime}m</span>
                   )}
                 </div>
-                {r.streaming && (
+                {r.streaming ? (
                   <div className="streaming">
                     {r.streaming.map((s) => (
                       <span key={s} className={`badge service-${slugify(s)}`}>
                         {s}
                       </span>
                     ))}
+                  </div>
+                ) : (
+                  <div className="streaming" style={{ visibility: 'hidden' }}>
+                    <span className="badge">placeholder</span>
                   </div>
                 )}
                 {r.genres && (
@@ -87,18 +91,26 @@ export default function ResultsList({
                   </div>
                 )}
                 <div className="ratings">
-                  {r.ratings.tmdb != null && (
+                  {r.ratings.tmdb != null ? (
                     <span className="badge rating rating--tmdb">
                       TMDB: {r.ratings.tmdb.toFixed ? r.ratings.tmdb.toFixed(1) : r.ratings.tmdb}
                     </span>
+                  ) : (
+                    <div className="badge rating rating--tmdb" style={{ visibility: 'hidden' }}>
+                      TMDB
+                    </div>
                   )}
-                  {r.ratings.rottenTomatoes != null && (
+                  {r.ratings.rottenTomatoes != null ? (
                     <span className="badge rating rating--rotten">
                       RT: {r.ratings.rottenTomatoes}%
                     </span>
+                  ) : (
+                    <div className="badge rating rating--rotten" style={{ visibility: 'hidden' }}>
+                      RT
+                    </div>
                   )}
                 </div>
-                {r.series && (
+                {r.series ? (
                   <sl-button
                     variant="neutral"
                     type="button"
@@ -107,6 +119,10 @@ export default function ResultsList({
                   >
                     Series
                   </sl-button>
+                ) : (
+                  <div style={{ visibility: 'hidden' }}>
+                    <sl-button variant="neutral" type="button">Series</sl-button>
+                  </div>
                 )}
               </div>
               <div slot="footer" className="actions">
