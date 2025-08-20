@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { searchTitles } from '../lib/api.js';
 
-export default function Search({ onSearch }) {
+export default function Search({ onSearch, onSelect }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
 
@@ -25,7 +25,11 @@ export default function Search({ onSearch }) {
   }, [query]);
 
   const handleSelect = (item) => {
-    onSearch?.(item.title);
+    if (onSelect) {
+      onSelect(item);
+    } else {
+      onSearch?.(item.title);
+    }
     setQuery('');
     setResults([]);
   };
