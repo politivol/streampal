@@ -15,8 +15,8 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
   const [providerOptions, setProviderOptions] = useState([]);
   const [providers, setProviders] = useState(filters.providers || []);
   const [seriesOnly, setSeriesOnly] = useState(filters.seriesOnly || false);
-  const [minTmdb, setMinTmdb] = useState(filters.minTmdb || '');
-  const [minRotten, setMinRotten] = useState(filters.minRotten || '');
+  const [minTmdb, setMinTmdb] = useState(Number(filters.minTmdb) || 0);
+  const [minRotten, setMinRotten] = useState(Number(filters.minRotten) || 0);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -140,26 +140,33 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
       <div className="filter-group">
         <label>
           Min TMDB Score
-          <input
-            type="number"
-            min="0"
-            max="10"
-            step="0.1"
-            value={minTmdb}
-            onChange={(e) => setMinTmdb(e.target.value)}
-          />
+          <div className="slider-group">
+            <input
+              type="range"
+              min="0"
+              max="10"
+              step="0.1"
+              value={minTmdb}
+              onChange={(e) => setMinTmdb(parseFloat(e.target.value))}
+            />
+            <span>{minTmdb.toFixed(1)}</span>
+          </div>
         </label>
       </div>
       <div className="filter-group">
         <label>
           Min Rotten Tomatoes
-          <input
-            type="number"
-            min="0"
-            max="100"
-            value={minRotten}
-            onChange={(e) => setMinRotten(e.target.value)}
-          />
+          <div className="slider-group">
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="5"
+              value={minRotten}
+              onChange={(e) => setMinRotten(parseInt(e.target.value, 10))}
+            />
+            <span>{minRotten}</span>
+          </div>
         </label>
       </div>
       <sl-button variant="primary" type="button" onClick={apply}>
