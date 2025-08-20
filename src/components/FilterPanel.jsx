@@ -127,7 +127,7 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
                       checked={selectedGenres.includes(g)}
                       onChange={(e) =>
                         e.target.checked
-                          ? setSelectedGenres([...selectedGenres, g])
+                          ? setSelectedGenres(prev => [...prev, g])
                           : removeGenre(g)
                       }
                     />
