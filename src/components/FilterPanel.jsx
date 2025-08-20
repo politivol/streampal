@@ -20,6 +20,7 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
   const [minTmdb, setMinTmdb] = useState(Number(filters.minTmdb) || 0);
   const [minRotten, setMinRotten] = useState(Number(filters.minRotten) || 0);
   const [open, setOpen] = useState(false);
+  const [loadingMeta, setLoadingMeta] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -49,6 +50,8 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
         if (active) setProviderOptions(Array.from(new Set(provNames)));
       } catch (_) {
         // ignore
+      } finally {
+        if (active) setLoadingMeta(false);
       }
     };
     fetchMeta();
@@ -118,22 +121,30 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
               ))}
             </div>
             <div className="options">
-              {genreOptions
-                .filter((g) => g.toLowerCase().includes(genreSearch.toLowerCase()))
-                .map((g) => (
-                  <label key={g}>
-                    <input
-                      type="checkbox"
-                      checked={selectedGenres.includes(g)}
-                      onChange={(e) =>
-                        e.target.checked
-                          ? setSelectedGenres(prev => [...prev, g])
-                          : removeGenre(g)
-                      }
-                    />
-                    {g}
-                  </label>
-                ))}
+              {loadingMeta ? (
+                <div className="loading-spinner">
+                  <sl-spinner></sl-spinner>
+                </div>
+              ) : (
+                genreOptions
+                  .filter((g) =>
+                    g.toLowerCase().includes(genreSearch.toLowerCase())
+                  )
+                  .map((g) => (
+                    <label key={g}>
+                      <input
+                        type="checkbox"
+                        checked={selectedGenres.includes(g)}
+                        onChange={(e) =>
+                          e.target.checked
+                            ? setSelectedGenres(prev => [...prev, g])
+                            : removeGenre(g)
+                        }
+                      />
+                      {g}
+                    </label>
+                  ))
+              )}
             </div>
           </div>
         </label>
@@ -171,22 +182,30 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
               ))}
             </div>
             <div className="options">
-              {providerOptions
-                .filter((p) => p.toLowerCase().includes(providerSearch.toLowerCase()))
-                .map((p) => (
-                  <label key={p}>
-                    <input
-                      type="checkbox"
-                      checked={providers.includes(p)}
-                      onChange={(e) =>
-                        e.target.checked
-                          ? setProviders(prev => [...prev, p])
-                          : removeProvider(p)
-                      }
-                    />
-                    {p}
-                  </label>
-                ))}
+              {loadingMeta ? (
+                <div className="loading-spinner">
+                  <sl-spinner></sl-spinner>
+                </div>
+              ) : (
+                providerOptions
+                  .filter((p) =>
+                    p.toLowerCase().includes(providerSearch.toLowerCase())
+                  )
+                  .map((p) => (
+                    <label key={p}>
+                      <input
+                        type="checkbox"
+                        checked={providers.includes(p)}
+                        onChange={(e) =>
+                          e.target.checked
+                            ? setProviders(prev => [...prev, p])
+                            : removeProvider(p)
+                        }
+                      />
+                      {p}
+                    </label>
+                  ))
+              )}
             </div>
           </div>
         </label>
@@ -233,7 +252,12 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
           </div>
         </label>
       </div>
-      <sl-button variant="primary" type="button" onClick={apply}>
+      <sl-button
+        variant="primary"
+        type="button"
+        disabled={loadingMeta}
+        onClick={apply}
+      >
         Search
       </sl-button>
     </aside>
