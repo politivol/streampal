@@ -4,6 +4,7 @@ const REQUIRED_KEYS = {
   omdbProxyUrl: 'VITE_OMDB_PROXY_URL',
   siteUrl: 'VITE_SITE_URL',
   googleClientId: 'VITE_GOOGLE_CLIENT_ID',
+  tmdbApiKey: 'VITE_TMDB_API_KEY',
 };
 
 const config = {};

@@ -3,8 +3,9 @@ import {
   normalizeProviderName,
   US_STREAMING_PROVIDERS,
 } from '../lib/providers.js';
+import config from '../lib/config.js';
 
-const TMDB_API_KEY = 'e20c40a6be42cbc9d98052ca3db76926';
+const TMDB_API_KEY = config.tmdbApiKey;
 
 export default function FilterPanel({ filters = {}, onApply, onClose }) {
   const [mediaType, setMediaType] = useState(filters.mediaType || 'movie');
