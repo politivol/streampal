@@ -34,17 +34,17 @@ export default function SeenList({ session, onClose }) {
     setOpen(true);
   }, [session]);
 
-  const addItem = async (movie) => {
-    if (!movie) return;
+  const addItem = async (item) => {
+    if (!item) return;
     if (session) {
       const { error } = await supabase
         .from('user_items')
         .insert({
           user_id: session.user.id,
-          tmdb_id: movie.imdbID,
-          item_type: 'movie',
+          tmdb_id: item.id,
+          item_type: item.mediaType || 'movie',
           list: 'seen',
-          payload: { title: movie.Title },
+          payload: { title: item.title },
         });
       if (error) {
         toast(error.message, 'danger', 5000, 'exclamation-octagon');
@@ -54,7 +54,7 @@ export default function SeenList({ session, onClose }) {
       }
     } else {
       const seen = JSON.parse(sessionStorage.getItem('seen') || '[]');
-      seen.push({ id: movie.imdbID, payload: { title: movie.Title } });
+      seen.push({ id: item.id, payload: { title: item.title } });
       sessionStorage.setItem('seen', JSON.stringify(seen));
       setSeenItems(seen);
       toast('Added to seen list', 'success', 3000, 'check-circle');
