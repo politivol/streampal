@@ -11,9 +11,11 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
   const [mediaType, setMediaType] = useState(filters.mediaType || 'movie');
   const [genreOptions, setGenreOptions] = useState([]);
   const [selectedGenres, setSelectedGenres] = useState(filters.genres || []);
+  const [genreSearch, setGenreSearch] = useState('');
   const [releaseDate, setReleaseDate] = useState(filters.releaseDate || 'any');
   const [providerOptions, setProviderOptions] = useState([]);
   const [providers, setProviders] = useState(filters.providers || []);
+  const [providerSearch, setProviderSearch] = useState('');
   const [seriesOnly, setSeriesOnly] = useState(filters.seriesOnly || false);
   const [minTmdb, setMinTmdb] = useState(Number(filters.minTmdb) || 0);
   const [minRotten, setMinRotten] = useState(Number(filters.minRotten) || 0);
@@ -56,12 +58,12 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
     };
   }, []);
 
-  const handleGenres = (e) => {
-    setSelectedGenres(Array.from(e.target.selectedOptions, (o) => o.value));
+  const removeGenre = (g) => {
+    setSelectedGenres((prev) => prev.filter((sg) => sg !== g));
   };
 
-  const handleProviders = (e) => {
-    setProviders(Array.from(e.target.selectedOptions, (o) => o.value));
+  const removeProvider = (p) => {
+    setProviders((prev) => prev.filter((sp) => sp !== p));
   };
 
   const apply = () => {
@@ -96,13 +98,44 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
       <div className="filter-group">
         <label>
           Genres
-          <select multiple value={selectedGenres} onChange={handleGenres}>
-            {genreOptions.map((g) => (
-              <option key={g} value={g}>
-                {g}
-              </option>
-            ))}
-          </select>
+          <div className="multi-select">
+            <input
+              type="text"
+              placeholder="Search genres"
+              value={genreSearch}
+              onChange={(e) => setGenreSearch(e.target.value)}
+            />
+            <div className="selected-tags">
+              {selectedGenres.map((g) => (
+                <sl-tag
+                  key={g}
+                  size="small"
+                  removable
+                  onSlRemove={() => removeGenre(g)}
+                >
+                  {g}
+                </sl-tag>
+              ))}
+            </div>
+            <div className="options">
+              {genreOptions
+                .filter((g) => g.toLowerCase().includes(genreSearch.toLowerCase()))
+                .map((g) => (
+                  <label key={g}>
+                    <input
+                      type="checkbox"
+                      checked={selectedGenres.includes(g)}
+                      onChange={(e) =>
+                        e.target.checked
+                          ? setSelectedGenres(prev => [...prev, g])
+                          : removeGenre(g)
+                      }
+                    />
+                    {g}
+                  </label>
+                ))}
+            </div>
+          </div>
         </label>
       </div>
       <div className="filter-group">
@@ -118,13 +151,44 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
       <div className="filter-group">
         <label>
           Streaming Providers
-          <select multiple value={providers} onChange={handleProviders}>
-            {providerOptions.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
+          <div className="multi-select">
+            <input
+              type="text"
+              placeholder="Search providers"
+              value={providerSearch}
+              onChange={(e) => setProviderSearch(e.target.value)}
+            />
+            <div className="selected-tags">
+              {providers.map((p) => (
+                <sl-tag
+                  key={p}
+                  size="small"
+                  removable
+                  onSlRemove={() => removeProvider(p)}
+                >
+                  {p}
+                </sl-tag>
+              ))}
+            </div>
+            <div className="options">
+              {providerOptions
+                .filter((p) => p.toLowerCase().includes(providerSearchLower))
+                .map((p) => (
+                  <label key={p}>
+                    <input
+                      type="checkbox"
+                      checked={providers.includes(p)}
+                      onChange={(e) =>
+                        e.target.checked
+                          ? setProviders(prev => [...prev, p])
+                          : removeProvider(p)
+                      }
+                    />
+                    {p}
+                  </label>
+                ))}
+            </div>
+          </div>
         </label>
       </div>
       <div className="filter-group">
