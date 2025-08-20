@@ -148,17 +148,15 @@ body {
     margin: 2rem 0;
     display: grid;
     gap: 1.5rem;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     align-items: stretch;
-    grid-auto-rows: 1fr;
   }
 
   .movie-card {
+    height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    height: 100%;
   }
 
   .movie-card:hover {
@@ -170,14 +168,14 @@ body {
     border: 1px solid var(--color-border);
     border-radius: 16px;
     overflow: hidden;
-    box-shadow:
+    box-shadow: 
       0 4px 6px -1px rgba(0, 0, 0, 0.1),
       0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     transition: all 0.3s ease;
-    height: 100%;
+    min-height: 700px;
   }
 
   .movie-card:hover::part(base) {
@@ -190,8 +188,8 @@ body {
   .movie-card img[slot="image"] {
     display: block;
     width: 100%;
-    aspect-ratio: 2 / 3;
-    object-fit: cover;
+    height: 450px;
+    object-fit: contain;
     object-position: center;
     flex-shrink: 0;
     background: var(--color-surface-elevated);
@@ -202,28 +200,27 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     padding: 1.5rem;
-    gap: 0.75rem;
+    gap: 1rem;
     background: var(--gradient-card);
     text-align: center;
+    min-height: 200px;
   }
 
   .movie-card .title-box {
     margin: 0;
-    font-size: 1.15rem;
+    font-size: 1.25rem;
     font-weight: 600;
     line-height: 1.3;
     color: var(--color-text);
     text-align: center;
-    height: 2.8rem;
+    min-height: 3.2rem;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0 0.5rem;
     word-wrap: break-word;
     hyphens: auto;
-    overflow: hidden;
   }
 
   .movie-card .details {
@@ -335,8 +332,6 @@ body {
     padding-top: 1rem;
     background: var(--gradient-card);
     border-top: 1px solid var(--color-border);
-    display: flex;
-    align-items: center;
   }
 
   /* Force Shoelace cards to use full height and flex layout */
@@ -351,13 +346,12 @@ body {
     flex-shrink: 0;
     padding: 0;
     margin-top: auto;
-    display: flex;
-    align-items: center;
   }
 
   /* Ensure all cards in the grid have the same height */
   .results-list li {
     display: flex;
+    height: 100%;
   }
 
   .actions {
@@ -449,18 +443,22 @@ body {
     }
 
     .results-list {
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 1.25rem;
-      grid-auto-rows: 1fr;
+    }
+
+    .movie-card::part(base) {
+      min-height: 650px;
     }
 
     .movie-card img[slot="image"] {
-      aspect-ratio: 2 / 3;
+      height: 400px;
     }
 
     .movie-card .card-body {
       padding: 1.25rem;
-      gap: 0.75rem;
+      gap: 0.875rem;
+      min-height: 180px;
     }
 
     .movie-card [slot="footer"] {
@@ -489,21 +487,26 @@ body {
       grid-template-columns: 1fr;
       gap: 1rem;
       margin: 1rem 0;
-      grid-auto-rows: 1fr;
+    }
+
+    .movie-card::part(base) {
+      min-height: 600px;
     }
 
     .movie-card img[slot="image"] {
-      aspect-ratio: 2 / 3;
+      height: 350px;
       object-position: center center;
     }
 
     .movie-card .card-body {
       padding: 1rem;
       gap: 0.75rem;
+      min-height: 160px;
     }
 
     .movie-card .title-box {
-      font-size: 1.05rem;
+      font-size: 1.1rem;
+      min-height: 2.8rem;
     }
 
     .movie-card [slot="footer"] {
@@ -524,8 +527,8 @@ body {
     .actions sl-button::part(base) {
       width: 100%;
       justify-content: center;
-      padding: 0.75rem 0.875rem;
-      font-size: 0.8rem;
+      padding: 0.875rem 1rem;
+      font-size: 0.875rem;
       font-weight: 600;
       border-radius: 12px;
       min-width: 0;
@@ -545,6 +548,9 @@ body {
     box-shadow: -2px 0 8px rgba(0, 0, 0, 0.5);
     transform: translateX(100%);
     transition: transform 0.3s ease;
+  /* Ensure the filter panel sits above main content and accepts clicks */
+  z-index: 100;
+  pointer-events: auto;
 }
 
 .title-box {
@@ -615,22 +621,8 @@ body {
       height: 48px;
     }
 
-    /* Stack logo above search and menu on small screens */
-    .header-bar {
-      grid-template-columns: 1fr auto;
-    }
-
-    .header-brand {
-      grid-column: 1 / -1;
-    }
-
     .header-search {
-      grid-column: 1;
-    }
-
-    .header-menu {
-      grid-column: 2;
-      justify-self: end;
+      grid-column: 1 / -1;
     }
 
     .filter-panel {
@@ -644,24 +636,15 @@ body {
 
     .results-list {
       grid-template-columns: 1fr;
-      grid-auto-rows: 1fr;
     }
 
     .actions {
       width: 100%;
       flex-direction: column;
-      gap: 0.5rem;
     }
 
     .actions sl-button {
       width: 100%;
-    }
-
-    .actions sl-button::part(base) {
-      width: 100%;
-      min-width: 0;
-      padding: 0.75rem 0.875rem;
-      font-size: 0.8rem;
     }
   }
 
@@ -702,31 +685,5 @@ body {
   transform: translate(-50%, -50%);
   z-index: 30;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-}
-
-/* Multi-select lists inside filter panel */
-.multi-select {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.multi-select .options {
-  max-height: 150px;
-  overflow-y: auto;
-  border: 1px solid var(--color-border);
-  padding: 0.25rem;
-}
-
-.multi-select .options label {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.multi-select .selected-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
 }
 
