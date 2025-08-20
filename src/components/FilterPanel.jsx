@@ -4,7 +4,12 @@ import {
   US_STREAMING_PROVIDERS,
 } from '../lib/providers.js';
 
-const TMDB_API_KEY = 'e20c40a6be42cbc9d98052ca3db76926';
+const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
+
+// Validate required environment variables
+if (!TMDB_API_KEY) {
+  console.error('VITE_TMDB_API_KEY is not set');
+}
 
 export default function FilterPanel({ filters = {}, onApply, onClose }) {
   const [mediaType, setMediaType] = useState(filters.mediaType || 'movie');
