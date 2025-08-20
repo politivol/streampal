@@ -148,11 +148,12 @@ body {
     margin: 2rem 0;
     display: grid;
     gap: 1.5rem;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    align-items: stretch;
   }
 
   .movie-card {
-    height: 100%;
+    height: 720px;
     display: flex;
     flex-direction: column;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -170,7 +171,7 @@ body {
     box-shadow: 
       0 4px 6px -1px rgba(0, 0, 0, 0.1),
       0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    height: 100%;
+    height: 720px;
     display: flex;
     flex-direction: column;
     transition: all 0.3s ease;
@@ -186,11 +187,12 @@ body {
   .movie-card img[slot="image"] {
     display: block;
     width: 100%;
-    height: 400px;
-    object-fit: cover;
-    object-position: center top;
+    height: 420px;
+    object-fit: contain;
+    object-position: center;
     flex-shrink: 0;
     background: var(--color-surface-elevated);
+    border-radius: 12px 12px 0 0;
   }
 
   .movie-card .card-body {
@@ -198,25 +200,28 @@ body {
     display: flex;
     flex-direction: column;
     padding: 1.5rem;
-    gap: 1rem;
+    gap: 0.75rem;
     background: var(--gradient-card);
     text-align: center;
+    height: 220px;
+    overflow: hidden;
   }
 
   .movie-card .title-box {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     font-weight: 600;
     line-height: 1.3;
     color: var(--color-text);
     text-align: center;
-    min-height: 2.6rem;
+    height: 2.8rem;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0 0.5rem;
     word-wrap: break-word;
     hyphens: auto;
+    overflow: hidden;
   }
 
   .movie-card .details {
@@ -325,8 +330,12 @@ body {
     margin-top: auto;
     flex-shrink: 0;
     padding: 1.5rem;
-    padding-top: 0;
+    padding-top: 1rem;
     background: var(--gradient-card);
+    border-top: 1px solid var(--color-border);
+    height: 80px;
+    display: flex;
+    align-items: center;
   }
 
   /* Force Shoelace cards to use full height and flex layout */
@@ -335,24 +344,34 @@ body {
     display: flex;
     flex-direction: column;
     padding: 0;
+    height: 220px;
   }
 
   .movie-card::part(footer) {
     flex-shrink: 0;
     padding: 0;
     margin-top: auto;
+    height: 80px;
+    display: flex;
+    align-items: center;
   }
 
   /* Ensure all cards in the grid have the same height */
   .results-list li {
     display: flex;
-    height: 100%;
+    height: 720px;
   }
 
   .actions {
     display: flex;
     gap: 0.75rem;
     flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .actions sl-button {
+    flex: 1;
+    min-width: 120px;
   }
 
   /* Modern button styling for Shoelace buttons */
@@ -363,9 +382,12 @@ body {
     color: white;
     font-weight: 600;
     font-size: 0.875rem;
-    padding: 0.75rem 1.5rem;
+    padding: 0.875rem 1.25rem;
     transition: all 0.2s ease;
     box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+    text-align: center;
+    justify-content: center;
+    width: 100%;
   }
 
   .actions sl-button::part(base):hover {
@@ -429,22 +451,44 @@ body {
     }
 
     .results-list {
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 1.25rem;
     }
 
+    .movie-card {
+      height: 680px;
+    }
+
+    .movie-card::part(base) {
+      height: 680px;
+    }
+
     .movie-card img[slot="image"] {
-      height: 350px;
+      height: 380px;
     }
 
     .movie-card .card-body {
       padding: 1.25rem;
-      gap: 0.875rem;
+      gap: 0.75rem;
+      height: 220px;
     }
 
     .movie-card [slot="footer"] {
       padding: 1.25rem;
-      padding-top: 0;
+      padding-top: 1rem;
+      height: 80px;
+    }
+
+    .movie-card::part(body) {
+      height: 220px;
+    }
+
+    .movie-card::part(footer) {
+      height: 80px;
+    }
+
+    .results-list li {
+      height: 680px;
     }
 
     .actions {
@@ -453,9 +497,9 @@ body {
     }
 
     .actions sl-button::part(base) {
-      padding: 0.75rem 1.5rem;
+      padding: 0.875rem 1.25rem;
       font-size: 0.875rem;
-      min-width: 120px;
+      min-width: 110px;
     }
   }
 
@@ -470,24 +514,46 @@ body {
       margin: 1rem 0;
     }
 
+    .movie-card {
+      height: 640px;
+    }
+
+    .movie-card::part(base) {
+      height: 640px;
+    }
+
     .movie-card img[slot="image"] {
-      height: 300px;
+      height: 350px;
       object-position: center center;
     }
 
     .movie-card .card-body {
       padding: 1rem;
       gap: 0.75rem;
+      height: 210px;
     }
 
     .movie-card .title-box {
-      font-size: 1.1rem;
-      min-height: 2.2rem;
+      font-size: 1.05rem;
+      height: 2.6rem;
     }
 
     .movie-card [slot="footer"] {
       padding: 1rem;
-      padding-top: 0;
+      padding-top: 1rem;
+      height: 80px;
+    }
+
+    .movie-card::part(body) {
+      height: 210px;
+    }
+
+    .movie-card::part(footer) {
+      height: 80px;
+    }
+
+    .results-list li {
+      height: 640px;
     }
 
     .actions {
@@ -507,10 +573,6 @@ body {
       font-size: 0.875rem;
       font-weight: 600;
       border-radius: 12px;
-    }
-
-    /* Make sure buttons don't get too narrow */
-    .actions sl-button::part(base) {
       min-width: 0;
       flex: 1;
     }
