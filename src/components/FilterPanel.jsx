@@ -3,13 +3,9 @@ import {
   normalizeProviderName,
   US_STREAMING_PROVIDERS,
 } from '../lib/providers.js';
+import config from '../lib/config.js';
 
-const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
-
-// Validate required environment variables
-if (!TMDB_API_KEY) {
-  console.error('VITE_TMDB_API_KEY is not set');
-}
+const TMDB_API_KEY = config.tmdbApiKey;
 
 export default function FilterPanel({ filters = {}, onApply, onClose }) {
   const [mediaType, setMediaType] = useState(filters.mediaType || 'movie');
@@ -24,32 +20,40 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    let active = true;
     const fetchMeta = async () => {
       try {
         const [movieGenresRes, tvGenresRes] = await Promise.all([
           fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${TMDB_API_KEY}`),
           fetch(`https://api.themoviedb.org/3/genre/tv/list?api_key=${TMDB_API_KEY}`),
         ]);
+        if (!active) return;
         const movieGenres = await movieGenresRes.json();
         const tvGenres = await tvGenresRes.json();
+        if (!active) return;
         const combined = [...(movieGenres.genres || []), ...(tvGenres.genres || [])];
         const names = Array.from(new Set(combined.map((g) => g.name)));
-        setGenreOptions(names);
+        if (active) setGenreOptions(names);
 
         const provRes = await fetch(
           `https://api.themoviedb.org/3/watch/providers/movie?api_key=${TMDB_API_KEY}&watch_region=US`
         );
+        if (!active) return;
         const provData = await provRes.json();
+        if (!active) return;
         const provNames = (provData.results || [])
           .map((p) => normalizeProviderName(p.provider_name))
           .filter((p) => US_STREAMING_PROVIDERS.includes(p));
-        setProviderOptions(Array.from(new Set(provNames)));
+        if (active) setProviderOptions(Array.from(new Set(provNames)));
       } catch (_) {
         // ignore
       }
     };
     fetchMeta();
     setOpen(true);
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleGenres = (e) => {

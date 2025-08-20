@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
 import { toast } from '../lib/toast.js';
+import config from '../lib/config.js';
 
 export default function AuthPanel({ onSession, onClose }) {
   const [email, setEmail] = useState('');
@@ -25,7 +26,7 @@ export default function AuthPanel({ onSession, onClose }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: import.meta.env.VITE_SITE_URL },
+      options: { emailRedirectTo: config.siteUrl },
     });
     if (error) toast(error.message, 'danger', 5000, 'exclamation-octagon');
     else {
@@ -36,12 +37,16 @@ export default function AuthPanel({ onSession, onClose }) {
 
   const googleButtonRef = useRef(null);
 
-  const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
+  const handleGoogleCallback = async (response) => {
+    const { data, error } = await supabase.auth.signInWithIdToken({
       provider: 'google',
-      options: { redirectTo: import.meta.env.VITE_SITE_URL },
+      token: response.credential,
     });
     if (error) toast(error.message, 'danger', 5000, 'exclamation-octagon');
+    else {
+      toast('Signed in successfully.', 'success', 5000, 'check-circle');
+      onSession?.(data.session);
+    }
   };
 
   useEffect(() => {
@@ -51,21 +56,25 @@ export default function AuthPanel({ onSession, onClose }) {
     script.onload = () => {
       if (window.google && googleButtonRef.current) {
         window.google.accounts.id.initialize({
-          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-          callback: () => {},
+          client_id: config.googleClientId,
+          callback: handleGoogleCallback,
         });
         window.google.accounts.id.renderButton(
           googleButtonRef.current,
           { theme: 'outline', size: 'large', text: 'signin_with' }
         );
-        const btn = googleButtonRef.current.querySelector('div[role="button"]');
-        btn?.addEventListener('click', signInWithGoogle);
       }
     };
     document.body.appendChild(script);
     return () => {
-      const btn = googleButtonRef.current?.querySelector('div[role="button"]');
-      btn?.removeEventListener('click', signInWithGoogle);
+      // Remove the Google SDK script
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+      // Remove the rendered Google button
+      if (googleButtonRef.current) {
+        googleButtonRef.current.innerHTML = '';
+      }
     };
   }, []);
 

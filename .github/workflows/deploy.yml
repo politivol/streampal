@@ -25,6 +25,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_OMDB_PROXY_URL: ${{ secrets.VITE_OMDB_PROXY_URL }}
+          VITE_SITE_URL: ${{ secrets.VITE_SITE_URL }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

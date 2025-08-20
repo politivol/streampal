@@ -1,11 +1,8 @@
-const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
-const OMDB_PROXY = import.meta.env.VITE_OMDB_PROXY_URL;
-const SB_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY;
+import config from './config.js';
 
-// Validate required environment variables
-if (!TMDB_API_KEY) {
-  console.error('VITE_TMDB_API_KEY is not set');
-}
+const TMDB_API_KEY = config.tmdbApiKey;
+const OMDB_PROXY = config.omdbProxyUrl;
+const SB_ANON = config.supabaseAnonKey;
 
 export async function fetchSeriesEntries(series) {
   if (!series) return [];
