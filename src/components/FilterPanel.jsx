@@ -172,7 +172,7 @@ export default function FilterPanel({ filters = {}, onApply, onClose }) {
             </div>
             <div className="options">
               {providerOptions
-                .filter((p) => p.toLowerCase().includes(providerSearchLower))
+                .filter((p) => p.toLowerCase().includes(providerSearch.toLowerCase()))
                 .map((p) => (
                   <label key={p}>
                     <input
