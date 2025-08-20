@@ -56,7 +56,8 @@ export default function Search({ onSearch, onSelect }) {
         <ul className="search-results">
           {results.map((r) => (
             <li key={r.id} onClick={() => handleSelect(r)}>
-              <sl-button variant="neutral" type="button">
+            <li key={r.id}>
+              <sl-button variant="neutral" type="button" onClick={() => handleSelect(r)}>
                 {r.title}
               </sl-button>
             </li>
