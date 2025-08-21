@@ -286,6 +286,11 @@ function App() {
           onShowSeries={(s) => setSeries(s)}
         />
       )}
+      {!loading && results.length === 0 && (
+        <div className="panel">
+          <p>No results found. Try adjusting your filters.</p>
+        </div>
+      )}
       {series && <SeriesPanel series={series} onClose={() => setSeries(null)} />}
       {showSeen && (
         <SeenList

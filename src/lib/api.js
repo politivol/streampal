@@ -20,8 +20,17 @@ function extractProviders(watch) {
 }
 
 export async function fetchTrending(mediaType, timeWindow = 'week') {
-  const res = await fetch(`https://api.themoviedb.org/3/trending/${mediaType}/${timeWindow}?api_key=${TMDB_API_KEY}`);
-  const data = await res.json();
+  const page = Math.floor(Math.random() * 500) + 1;
+  let res = await fetch(
+    `https://api.themoviedb.org/3/trending/${mediaType}/${timeWindow}?api_key=${TMDB_API_KEY}&page=${page}`
+  );
+  let data = await res.json();
+  if (!data.results?.length) {
+    res = await fetch(
+      `https://api.themoviedb.org/3/trending/${mediaType}/${timeWindow}?api_key=${TMDB_API_KEY}`
+    );
+    data = await res.json();
+  }
   return (data.results || []).map((r) => ({
     id: r.id,
     title: r.title || r.name || '',
@@ -48,9 +57,6 @@ export async function discoverTitles(filters = {}) {
   const params = new URLSearchParams();
   params.set('api_key', TMDB_API_KEY);
   params.set('sort_by', 'popularity.desc');
-
-  const page = Math.floor(Math.random() * 500) + 1;
-  params.set('page', page);
 
   if (filters.genres?.length) {
     try {
@@ -89,11 +95,15 @@ export async function discoverTitles(filters = {}) {
   }
 
   if (filters.minTmdb) params.set('vote_average.gte', filters.minTmdb);
-
-  const res = await fetch(
-    `https://api.themoviedb.org/3/discover/${mediaType}?${params.toString()}`
-  );
-  const data = await res.json();
+  const base = `https://api.themoviedb.org/3/discover/${mediaType}?${params.toString()}`;
+  let res = await fetch(`${base}&page=1`);
+  let data = await res.json();
+  const totalPages = Math.min(data.total_pages || 1, 500);
+  const page = Math.floor(Math.random() * totalPages) + 1;
+  if (page !== 1) {
+    res = await fetch(`${base}&page=${page}`);
+    data = await res.json();
+  }
   return (data.results || []).map((r) => ({
     id: r.id,
     title: r.title || r.name || '',
