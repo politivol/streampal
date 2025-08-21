@@ -90,7 +90,7 @@ describe('fetchDetails', () => {
     expect(fetchMock).toHaveBeenNthCalledWith(1, expect.stringContaining('/movie/1'));
     expect(fetchMock).toHaveBeenNthCalledWith(
       2,
-      expect.stringContaining('https://example.com/omdb-proxy?i=tt123'),
+      expect.stringContaining('https://example.com/omdb-proxy?i=tt123&tomatoes=true'),
       expect.anything()
     );
 

@@ -19,6 +19,7 @@ export default function FilterPanel({ filters = {}, onApply, onClose, onReset })
   const [seriesOnly, setSeriesOnly] = useState(filters.seriesOnly || false);
   const [minTmdb, setMinTmdb] = useState(Number(filters.minTmdb) || 0);
   const [minRotten, setMinRotten] = useState(Number(filters.minRotten) || 0);
+  const [notStreaming, setNotStreaming] = useState(filters.notStreaming || false);
   const [open, setOpen] = useState(false);
   const [loadingMeta, setLoadingMeta] = useState(true);
 
@@ -84,13 +85,15 @@ export default function FilterPanel({ filters = {}, onApply, onClose, onReset })
       seriesOnly,
       minTmdb,
       minRotten,
+      notStreaming,
       isGeneralSearch:
         selectedGenres.length === 0 &&
         providers.length === 0 &&
         releaseDate === 'any' &&
         !seriesOnly &&
         minTmdb === 0 &&
-        minRotten === 0,
+        minRotten === 0 &&
+        !notStreaming,
     });
   };
 
@@ -103,6 +106,7 @@ export default function FilterPanel({ filters = {}, onApply, onClose, onReset })
       seriesOnly: false,
       minTmdb: 0,
       minRotten: 0,
+      notStreaming: false,
       isGeneralSearch: true,
     };
     setMediaType(defaults.mediaType);
@@ -114,10 +118,11 @@ export default function FilterPanel({ filters = {}, onApply, onClose, onReset })
     setSeriesOnly(defaults.seriesOnly);
     setMinTmdb(defaults.minTmdb);
     setMinRotten(defaults.minRotten);
+    setNotStreaming(defaults.notStreaming);
     onReset?.(defaults);
   };
 
-  const isGeneralSearch = selectedGenres.length === 0 && providers.length === 0 && releaseDate === 'any' && !seriesOnly && minTmdb === 0 && minRotten === 0;
+  const isGeneralSearch = selectedGenres.length === 0 && providers.length === 0 && releaseDate === 'any' && !seriesOnly && minTmdb === 0 && minRotten === 0 && !notStreaming;
 
   return (
     <aside className={`filter-panel ${open ? 'open' : ''}`}>
@@ -246,6 +251,16 @@ export default function FilterPanel({ filters = {}, onApply, onClose, onReset })
               )}
             </div>
           </div>
+        </label>
+      </div>
+      <div className="filter-group">
+        <label>
+          <input
+            type="checkbox"
+            checked={notStreaming}
+            onChange={(e) => setNotStreaming(e.target.checked)}
+          />
+          {' '}Not currently streaming
         </label>
       </div>
       <div className="filter-group">

@@ -133,7 +133,7 @@ export async function fetchDetails(tmdbId) {
   if (imdbId) {
     if (OMDB_PROXY) {
       // proxy must include the apikey server-side; we call the proxy via HTTPS
-      const url = `${OMDB_PROXY.replace(/\/$/, '')}?i=${encodeURIComponent(imdbId)}`;
+      const url = `${OMDB_PROXY.replace(/\/$/, '')}?i=${encodeURIComponent(imdbId)}&tomatoes=true`;
       const headers = {};
       if (SB_ANON) {
         headers.apikey = SB_ANON;

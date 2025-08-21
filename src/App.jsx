@@ -21,6 +21,7 @@ function App() {
     seriesOnly: false,
     minTmdb: '',
     minRotten: '',
+    notStreaming: false,
     isGeneralSearch: true,
   });
   const [results, setResults] = useState([]);
@@ -78,7 +79,8 @@ function App() {
           !f.providers?.length &&
           !f.seriesOnly &&
           !f.minTmdb &&
-          !f.minRotten);
+          !f.minRotten &&
+          !f.notStreaming);
 
     let data;
     let resultsTitle = 'Trending';
@@ -131,7 +133,12 @@ function App() {
         if (f.releaseDate === 'past_year' && diff > 1) return false;
         if (f.releaseDate === 'older' && diff <= 1) return false;
       }
-      if (f.providers.length && !f.providers.some((p) => r.streaming?.includes(p))) return false;
+      if (!f.notStreaming && f.providers.length && !f.providers.some((p) => r.streaming?.includes(p))) return false;
+      if (f.notStreaming) {
+        if (r.streaming?.length) return false;
+      } else {
+        if (!r.streaming?.length) return false;
+      }
       if (f.seriesOnly && !r.series) return false;
       if (f.minTmdb && (r.ratings.tmdb ?? 0) < parseFloat(f.minTmdb)) return false;
       if (
@@ -177,6 +184,7 @@ function App() {
       seriesOnly: false,
       minTmdb: 0,
       minRotten: 0,
+      notStreaming: false,
       isGeneralSearch: true,
     };
     setFilters(defaults);
