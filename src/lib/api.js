@@ -43,6 +43,67 @@ export async function searchTitles(query, mediaType = 'multi') {
   }));
 }
 
+export async function discoverTitles(filters = {}) {
+  const mediaType = filters.mediaType || 'movie';
+  const params = new URLSearchParams();
+  params.set('api_key', TMDB_API_KEY);
+  params.set('sort_by', 'popularity.desc');
+
+  const page = Math.floor(Math.random() * 500) + 1;
+  params.set('page', page);
+
+  if (filters.genres?.length) {
+    try {
+      const genreRes = await fetch(
+        `https://api.themoviedb.org/3/genre/${mediaType}/list?api_key=${TMDB_API_KEY}`
+      );
+      const genreData = await genreRes.json();
+      const map = {};
+      for (const g of genreData.genres || []) map[g.name] = g.id;
+      const ids = filters.genres.map((n) => map[n]).filter(Boolean);
+      if (ids.length) params.set('with_genres', ids.join(','));
+    } catch (_) {
+      // ignore genre errors
+    }
+  }
+
+  if (filters.providers?.length) {
+    try {
+      const provRes = await fetch(
+        `https://api.themoviedb.org/3/watch/providers/${mediaType}?api_key=${TMDB_API_KEY}&watch_region=US`
+      );
+      const provData = await provRes.json();
+      const map = {};
+      for (const p of provData.results || []) {
+        const name = normalizeProviderName(p.provider_name);
+        map[name] = p.provider_id;
+      }
+      const ids = filters.providers.map((n) => map[n]).filter(Boolean);
+      if (ids.length) {
+        params.set('with_watch_providers', ids.join(','));
+        params.set('watch_region', 'US');
+      }
+    } catch (_) {
+      // ignore provider errors
+    }
+  }
+
+  if (filters.minTmdb) params.set('vote_average.gte', filters.minTmdb);
+
+  const res = await fetch(
+    `https://api.themoviedb.org/3/discover/${mediaType}?${params.toString()}`
+  );
+  const data = await res.json();
+  return (data.results || []).map((r) => ({
+    id: r.id,
+    title: r.title || r.name || '',
+    artwork: r.poster_path
+      ? `https://image.tmdb.org/t/p/w500${r.poster_path}`
+      : null,
+    mediaType,
+  }));
+}
+
 export async function fetchDetails(tmdbId) {
   const endpoints = ['movie', 'tv'];
   let detailData;

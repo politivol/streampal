@@ -108,3 +108,56 @@ describe('fetchDetails', () => {
     });
   });
 });
+
+describe('discoverTitles', () => {
+  it('builds discover query with filters', async () => {
+    vi.resetModules();
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
+    const { discoverTitles } = await import('./api');
+
+    const fetchMock = vi
+      .fn()
+      // genres list
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ genres: [{ id: 28, name: 'Action' }] })
+      })
+      // providers list
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({ results: [{ provider_name: 'Netflix', provider_id: 8 }] })
+      })
+      // discover results
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({ results: [{ id: 1, title: 'Movie', poster_path: '/p.jpg' }] })
+      });
+
+    global.fetch = fetchMock;
+
+    const result = await discoverTitles({
+      mediaType: 'movie',
+      genres: ['Action'],
+      providers: ['Netflix'],
+      minTmdb: 7
+    });
+
+    const url = fetchMock.mock.calls[2][0];
+    expect(url).toContain('/discover/movie?');
+    expect(url).toContain('with_genres=28');
+    expect(url).toContain('with_watch_providers=8');
+    expect(url).toContain('vote_average.gte=7');
+    expect(url).toContain('page=251');
+
+    expect(result).toEqual([
+      {
+        id: 1,
+        title: 'Movie',
+        artwork: 'https://image.tmdb.org/t/p/w500/p.jpg',
+        mediaType: 'movie'
+      }
+    ]);
+  });
+});
