@@ -35,7 +35,9 @@ export default function FilterPanel({ filters = {}, onApply, onClose, onReset })
         const tvGenres = await tvGenresRes.json();
         if (!active) return;
         const combined = [...(movieGenres.genres || []), ...(tvGenres.genres || [])];
-        const names = Array.from(new Set(combined.map((g) => g.name)));
+        const names = Array.from(new Set(combined.map((g) => g.name))).sort((a, b) =>
+          a.localeCompare(b)
+        );
         if (active) setGenreOptions(names);
 
         const provRes = await fetch(
@@ -44,10 +46,14 @@ export default function FilterPanel({ filters = {}, onApply, onClose, onReset })
         if (!active) return;
         const provData = await provRes.json();
         if (!active) return;
-        const provNames = (provData.results || [])
-          .map((p) => normalizeProviderName(p.provider_name))
-          .filter((p) => US_STREAMING_PROVIDERS.includes(p));
-        if (active) setProviderOptions(Array.from(new Set(provNames)));
+        const provNames = Array.from(
+          new Set(
+            (provData.results || [])
+              .map((p) => normalizeProviderName(p.provider_name))
+              .filter((p) => US_STREAMING_PROVIDERS.includes(p))
+          )
+        ).sort((a, b) => a.localeCompare(b));
+        if (active) setProviderOptions(provNames);
       } catch (_) {
         // ignore
       } finally {
