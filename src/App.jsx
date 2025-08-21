@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import SeenList from './components/SeenList.jsx';
 import Header from './components/Header.jsx';
 import FilterPanel from './components/FilterPanel.jsx';
@@ -25,9 +25,11 @@ function App() {
   });
   const [results, setResults] = useState([]);
   const [pinnedIds, setPinnedIds] = useState(new Set());
+  const [seenIds, setSeenIds] = useState(new Set());
   const [series, setSeries] = useState(null);
   const [loading, setLoading] = useState(false);
   const [resultsTitle, setResultsTitle] = useState('Trending');
+  const seenLoaded = useRef(false);
 
   const startLoading = () => setLoading(true);
   const stopLoading = () => setLoading(false);
@@ -46,6 +48,25 @@ function App() {
 
   useEffect(() => {
     if (session) setShowAuth(false);
+  }, [session]);
+
+  useEffect(() => {
+    const fetchSeenIds = async () => {
+      if (session) {
+        const { data } = await supabase
+          .from('user_items')
+          .select('tmdb_id')
+          .eq('user_id', session.user.id)
+          .eq('list', 'seen');
+        setSeenIds(new Set(data?.map((i) => i.tmdb_id)));
+      } else {
+        const seen = JSON.parse(sessionStorage.getItem('seen') || '[]');
+        setSeenIds(new Set(seen.map((i) => i.id)));
+      }
+    };
+
+    seenLoaded.current = false;
+    fetchSeenIds();
   }, [session]);
 
   const loadResults = async (f = filters) => {
@@ -91,7 +112,9 @@ function App() {
       resultsTitle = `Filtered ${f.mediaType === 'tv' ? 'TV Shows' : 'Movies'}`;
     }
     
-    const filtered = data.filter((r) => !pinnedIds.has(r.id));
+    const filtered = data.filter(
+      (r) => !pinnedIds.has(r.id) && !seenIds.has(r.id)
+    );
     const detailed = (
       await Promise.all(filtered.map((r) => fetchDetails(r.id).catch(() => null)))
     ).filter(Boolean);
@@ -127,10 +150,12 @@ function App() {
   };
 
   useEffect(() => {
+    if (seenLoaded.current) return;
+    seenLoaded.current = true;
     startLoading();
     loadResults(filters).finally(stopLoading);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [seenIds]);
 
   const applyFilters = async (f) => {
     setFilters(f);
@@ -188,11 +213,16 @@ function App() {
     }
   };
 
-  const markSeen = (id) => {
+  const handleSeen = (id) => {
     setResults((rs) => rs.filter((r) => r.id !== id));
     setPinnedIds((set) => {
       const next = new Set(set);
       next.delete(id);
+      return next;
+    });
+    setSeenIds((set) => {
+      const next = new Set(set);
+      next.add(id);
       return next;
     });
   };
@@ -250,7 +280,7 @@ function App() {
           title={resultsTitle}
           session={session}
           pinnedIds={pinnedIds}
-          onSeen={markSeen}
+          onSeen={handleSeen}
           onPin={togglePin}
           onRollAgain={rollAgain}
           onShowSeries={(s) => setSeries(s)}
