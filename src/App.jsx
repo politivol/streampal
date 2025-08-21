@@ -21,6 +21,7 @@ function App() {
     seriesOnly: false,
     minTmdb: '',
     minRotten: '',
+    isGeneralSearch: true,
   });
   const [results, setResults] = useState([]);
   const [pinnedIds, setPinnedIds] = useState(new Set());
@@ -48,11 +49,21 @@ function App() {
   }, [session]);
 
   const loadResults = async (f = filters) => {
+    const isGeneral =
+      typeof f.isGeneralSearch === 'boolean'
+        ? f.isGeneralSearch
+        : (!f.genres?.length &&
+          (!f.releaseDate || f.releaseDate === 'any') &&
+          !f.providers?.length &&
+          !f.seriesOnly &&
+          !f.minTmdb &&
+          !f.minRotten);
+
     let data;
     let resultsTitle = 'Trending';
-    
+
     // If it's a general search (no filters applied), fetch diverse content
-    if (f.isGeneralSearch) {
+    if (isGeneral) {
       // Fetch a mix of trending content from different time periods for variety
       const [weeklyTrending, dailyTrending] = await Promise.all([
         fetchTrending(f.mediaType || 'movie', 'week'),
@@ -87,8 +98,8 @@ function App() {
     
     const applied = detailed.filter((r) => {
       // Skip filtering if it's a general search
-      if (f.isGeneralSearch) return true;
-      
+      if (isGeneral) return true;
+
       if (f.genres.length && !f.genres.every((g) => r.genres?.includes(g))) return false;
       if (f.releaseDate !== 'any' && r.releaseDate) {
         const year = new Date(r.releaseDate).getFullYear();
