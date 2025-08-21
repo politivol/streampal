@@ -545,6 +545,11 @@ body {
     box-shadow: -2px 0 8px rgba(0, 0, 0, 0.5);
     transform: translateX(100%);
     transition: transform 0.3s ease;
+  /* New: ensure the drawer overlays cards and handles its own scrolling */
+  z-index: 20;
+  overflow-y: auto;
+  max-height: 100vh;
+  box-sizing: border-box;
 }
 
 .title-box {
@@ -634,9 +639,21 @@ body {
     }
 
     .filter-panel {
-      width: 100%;
-      max-width: 320px;
-    }
+    /* Keep it a right-hand drawer on mobile, full height, sane width */
+    width: min(100vw, 360px);
+    max-width: none;
+    right: 0;
+    left: auto;
+  }
+
+  /* Keep the action buttons visible and tap-friendly inside the panel */
+  .filter-panel .row--actions {
+    position: sticky;
+    bottom: 0;
+    background: var(--color-surface);
+    padding-top: 0.5rem;
+    margin-top: 0.5rem;
+  }
 
     .filter-panel sl-button {
       width: 100%;
