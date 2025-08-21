@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   normalizeProviderName,
   US_STREAMING_PROVIDERS,
@@ -116,9 +116,6 @@ export default function FilterPanel({ filters = {}, onApply, onClose, onReset })
     setMinRotten(defaults.minRotten);
     onReset?.(defaults);
   };
-
-  // Always allow search - no longer disable based on loading or selections
-  const disableSearch = false;
 
   const isGeneralSearch = selectedGenres.length === 0 && providers.length === 0 && releaseDate === 'any' && !seriesOnly && minTmdb === 0 && minRotten === 0;
 
@@ -300,7 +297,6 @@ export default function FilterPanel({ filters = {}, onApply, onClose, onReset })
         <sl-button
           variant="primary"
           type="button"
-          disabled={disableSearch}
           onClick={apply}
         >
           {isGeneralSearch ? 'Discover Random Content' : 'Search with Filters'}
