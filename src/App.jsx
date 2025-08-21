@@ -5,7 +5,7 @@ import FilterPanel from './components/FilterPanel.jsx';
 import ResultsList from './components/ResultsList.jsx';
 import SeriesPanel from './components/SeriesPanel.jsx';
 import AuthPanel from './components/AuthPanel.jsx';
-import { fetchTrending, fetchDetails, searchTitles } from './lib/api.js';
+import { fetchTrending, fetchDetails, searchTitles, discoverTitles } from './lib/api.js';
 import { supabase } from './lib/supabaseClient.js';
 
 function App() {
@@ -69,7 +69,7 @@ function App() {
         fetchTrending(f.mediaType || 'movie', 'week'),
         fetchTrending(f.mediaType || 'movie', 'day')
       ]);
-      
+
       // Combine and shuffle for variety
       const combined = [...weeklyTrending, ...dailyTrending];
       const uniqueById = combined.reduce((acc, item) => {
@@ -77,18 +77,18 @@ function App() {
         return acc;
       }, {});
       data = Object.values(uniqueById);
-      
+
       // Shuffle the array for random order
       for (let i = data.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [data[i], data[j]] = [data[j], data[i]];
       }
-      
+
       resultsTitle = `Random ${f.mediaType === 'tv' ? 'TV Shows' : 'Movies'}`;
     } else {
-      // Regular filtered search - fetch trending and apply filters
-      data = await fetchTrending(f.mediaType || 'movie');
-      resultsTitle = 'Trending';
+      // Use TMDB discover endpoint when filters are applied
+      data = await discoverTitles(f);
+      resultsTitle = `Filtered ${f.mediaType === 'tv' ? 'TV Shows' : 'Movies'}`;
     }
     
     const filtered = data.filter((r) => !pinnedIds.has(r.id));
