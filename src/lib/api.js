@@ -80,7 +80,7 @@ export async function discoverTitles(filters = {}) {
       }
       const ids = filters.providers.map((n) => map[n]).filter(Boolean);
       if (ids.length) {
-        params.set('with_watch_providers', ids.join('|'));
+        params.set('with_watch_providers', ids.join(','));
         params.set('watch_region', 'US');
       }
     } catch (_) {
