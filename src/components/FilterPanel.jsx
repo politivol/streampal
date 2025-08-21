@@ -294,7 +294,7 @@ export default function FilterPanel({ filters = {}, onApply, onClose, onReset })
         <sl-button
           variant="primary"
           type="button"
-          {...(disableSearch ? { disabled: true } : {})}
+          disabled={disableSearch}
           onClick={apply}
         >
           {isGeneralSearch ? 'Discover Random Content' : 'Search with Filters'}
