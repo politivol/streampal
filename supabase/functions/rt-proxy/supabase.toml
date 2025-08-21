@@ -1,0 +1,2 @@
+[functions.rt-proxy]
+verify_jwt = false

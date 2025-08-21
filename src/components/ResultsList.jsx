@@ -101,12 +101,12 @@ export default function ResultsList({
                     </div>
                   )}
                   {r.ratings.rottenTomatoes != null ? (
-                    <span className="badge rating rating--rotten">
+                    <span className="badge rating rating--rotten" title={`Source: ${r.ratings.rtSource || 'unknown'}`}>
                       RT: {r.ratings.rottenTomatoes}%
                     </span>
                   ) : (
-                    <div className="badge rating rating--rotten" style={{ visibility: 'hidden' }}>
-                      RT
+                    <div className="badge rating rating--rotten rating--unavailable" title="Rotten Tomatoes score unavailable">
+                      RT: --
                     </div>
                   )}
                 </div>

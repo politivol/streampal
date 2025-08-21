@@ -328,6 +328,19 @@ body {
     margin-right: 0.25rem;
   }
 
+  .movie-card .ratings .rating--unavailable {
+    background: linear-gradient(135deg, #666, #888);
+    color: #ccc;
+    opacity: 0.6;
+    border: 1px dashed #555;
+  }
+
+  .movie-card .ratings .rating--unavailable::before {
+    content: "🍅";
+    margin-right: 0.25rem;
+    opacity: 0.5;
+  }
+
   .movie-card [slot="footer"] {
     margin-top: auto;
     flex-shrink: 0;

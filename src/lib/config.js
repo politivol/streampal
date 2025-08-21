@@ -2,6 +2,7 @@ const REQUIRED_KEYS = {
   supabaseUrl: 'VITE_SUPABASE_URL',
   supabaseAnonKey: 'VITE_SUPABASE_ANON_KEY',
   omdbProxyUrl: 'VITE_OMDB_PROXY_URL',
+  rtProxyUrl: 'VITE_RT_PROXY_URL',
   siteUrl: 'VITE_SITE_URL',
   googleClientId: 'VITE_GOOGLE_CLIENT_ID',
   tmdbApiKey: 'VITE_TMDB_API_KEY',

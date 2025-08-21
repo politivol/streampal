@@ -113,18 +113,16 @@ function App() {
       data = await discoverTitles(f);
       resultsTitle = `Filtered ${f.mediaType === 'tv' ? 'TV Shows' : 'Movies'}`;
     }
-    
+
     const filtered = data.filter(
       (r) => !pinnedIds.has(r.id) && !seenIds.has(r.id)
     );
     const detailed = (
       await Promise.all(filtered.map((r) => fetchDetails(r.id).catch(() => null)))
     ).filter(Boolean);
-    
     const applied = detailed.filter((r) => {
-      // Skip filtering if it's a general search
-      if (isGeneral) return true;
-
+  // Skip filtering if it's a general search
+  if (isGeneral) return true;
       if (f.genres.length && !f.genres.every((g) => r.genres?.includes(g))) return false;
       if (f.releaseDate !== 'any' && r.releaseDate) {
         const year = new Date(r.releaseDate).getFullYear();
@@ -148,12 +146,11 @@ function App() {
         return false;
       return true;
     });
-    
     setResults((prev) => {
       const pinned = prev.filter((r) => pinnedIds.has(r.id));
       return [...pinned, ...applied];
     });
-    setResultsTitle(resultsTitle);
+    setResultsTitle('Trending');
   };
 
   useEffect(() => {
