@@ -146,91 +146,91 @@ class RottenTomatoesClient {
         }
       }
 
-      console.log(`⚠️ No score-board element found for "${title}", falling back to HTML parsing`);
+      console.log(`⚠️ No score-board element found for "${title}", falling back to JSON/HTML parsing`);
 
-      // Priority 2: HTML class patterns (fallback, more prone to promotional content)
-      const tomatometerHtmlPatterns = [
-        /tomatometer[^>]*>[\s\S]*?(\d+)%/i,
-        /score-board__tomatometer[^>]*>[\s\S]*?(\d+)%/i,
-        /critics-score[^>]*>[\s\S]*?(\d+)%/i
-      ];
-
-      const audienceHtmlPatterns = [
-        /audience-score[^>]*>[\s\S]*?(\d+)%/i,
-        /score-board__audience[^>]*>[\s\S]*?(\d+)%/i,
-        /popcorn[^>]*>[\s\S]*?(\d+)%/i
-      ];
-
-      // Try HTML patterns with more filtering to avoid promotional content
-      for (const pattern of tomatometerHtmlPatterns) {
-        const matches = [...html.matchAll(new RegExp(pattern.source, 'gi'))];
-        
-        if (matches.length >= 2) {
-          // Use the second match - first is often promotional
-          const score = parseInt(matches[1][1]);
-          if (score >= 0 && score <= 100 && score !== 99) {
-            scores.tomatometer = score;
-            scores.found = true;
-            console.log(`🍅 Tomatometer from HTML (2nd match): ${score}%`);
-            break;
-          } else if (score === 99) {
-            console.log(`⚠️ Skipping suspicious 99% tomatometer score for "${title}"`);
-          }
-        } else if (matches.length === 1) {
-          const score = parseInt(matches[0][1]);
-          // Be more restrictive with single matches to avoid promotional content
-          if (score >= 0 && score <= 100 && score !== 99 && score !== 100) {
-            scores.tomatometer = score;
-            scores.found = true;
-            console.log(`🍅 Tomatometer from HTML (single): ${score}%`);
-            break;
-          } else {
-            console.log(`⚠️ Skipping ${score}% tomatometer score for "${title}" (likely promotional)`);
-          }
+      // Priority 2: JSON patterns (more reliable than HTML snippets)
+      const jsonTomatometer = html.match(/"tomatometer":\s*(\d+)/i);
+      if (jsonTomatometer) {
+        const score = parseInt(jsonTomatometer[1]);
+        if (score >= 0 && score <= 100 && score !== 99) {
+          scores.tomatometer = score;
+          scores.found = true;
+          console.log(`📊 Tomatometer from JSON: ${score}%`);
+        } else if (score === 99) {
+          console.log(`⚠️ Skipping suspicious 99% JSON tomatometer for "${title}"`);
         }
       }
 
-      for (const pattern of audienceHtmlPatterns) {
-        const match = html.match(pattern);
-        if (match) {
-          const score = parseInt(match[1]);
-          // Be more restrictive to avoid promotional content
-          if (score >= 0 && score <= 100 && score !== 99) {
-            scores.audience_score = score;
-            scores.found = true;
-            console.log(`👥 Audience from HTML: ${score}%`);
-            break;
-          } else if (score === 99) {
-            console.log(`⚠️ Skipping suspicious 99% audience score for "${title}"`);
-          }
+      const jsonAudience = html.match(/"audienceScore":\s*(\d+)/i);
+      if (jsonAudience) {
+        const score = parseInt(jsonAudience[1]);
+        if (score >= 0 && score <= 100 && score !== 99) {
+          scores.audience_score = score;
+          scores.found = true;
+          console.log(`📊 Audience from JSON: ${score}%`);
+        } else if (score === 99) {
+          console.log(`⚠️ Skipping suspicious 99% JSON audience for "${title}"`);
         }
       }
 
-      // Priority 3: JSON patterns (last resort, also filter 99%)
-      if (!scores.tomatometer) {
-        const jsonTomatometer = html.match(/"tomatometer":\s*(\d+)/i);
-        if (jsonTomatometer) {
-          const score = parseInt(jsonTomatometer[1]);
-          if (score >= 0 && score <= 100 && score !== 99) {
-            scores.tomatometer = score;
-            scores.found = true;
-            console.log(`📊 Tomatometer from JSON: ${score}%`);
-          } else if (score === 99) {
-            console.log(`⚠️ Skipping suspicious 99% JSON tomatometer for "${title}"`);
+      // Priority 3: HTML class patterns (fallback, more prone to promotional content)
+      if (scores.tomatometer === null || scores.audience_score === null) {
+        const tomatometerHtmlPatterns = [
+          /tomatometer[^>]*>[\s\S]*?(\d+)%/i,
+          /score-board__tomatometer[^>]*>[\s\S]*?(\d+)%/i,
+          /critics-score[^>]*>[\s\S]*?(\d+)%/i
+        ];
+
+        const audienceHtmlPatterns = [
+          /audience-score[^>]*>[\s\S]*?(\d+)%/i,
+          /score-board__audience[^>]*>[\s\S]*?(\d+)%/i,
+          /popcorn[^>]*>[\s\S]*?(\d+)%/i
+        ];
+
+        // Try HTML patterns with more filtering to avoid promotional content
+        for (const pattern of tomatometerHtmlPatterns) {
+          if (scores.tomatometer !== null) break;
+          const matches = [...html.matchAll(new RegExp(pattern.source, 'gi'))];
+
+          if (matches.length >= 2) {
+            // Use the second match - first is often promotional
+            const score = parseInt(matches[1][1]);
+            if (score >= 0 && score <= 100 && score !== 99) {
+              scores.tomatometer = score;
+              scores.found = true;
+              console.log(`🍅 Tomatometer from HTML (2nd match): ${score}%`);
+              break;
+            } else if (score === 99) {
+              console.log(`⚠️ Skipping suspicious 99% tomatometer score for "${title}"`);
+            }
+          } else if (matches.length === 1) {
+            const score = parseInt(matches[0][1]);
+            // Be more restrictive with single matches to avoid promotional content
+            if (score >= 0 && score <= 100 && score !== 99 && score !== 100) {
+              scores.tomatometer = score;
+              scores.found = true;
+              console.log(`🍅 Tomatometer from HTML (single): ${score}%`);
+              break;
+            } else {
+              console.log(`⚠️ Skipping ${score}% tomatometer score for "${title}" (likely promotional)`);
+            }
           }
         }
-      }
-      
-      if (!scores.audience_score) {
-        const jsonAudience = html.match(/"audienceScore":\s*(\d+)/i);
-        if (jsonAudience) {
-          const score = parseInt(jsonAudience[1]);
-          if (score >= 0 && score <= 100 && score !== 99) {
-            scores.audience_score = score;
-            scores.found = true;
-            console.log(`📊 Audience from JSON: ${score}%`);
-          } else if (score === 99) {
-            console.log(`⚠️ Skipping suspicious 99% JSON audience for "${title}"`);
+
+        for (const pattern of audienceHtmlPatterns) {
+          if (scores.audience_score !== null) break;
+          const match = html.match(pattern);
+          if (match) {
+            const score = parseInt(match[1]);
+            // Be more restrictive to avoid promotional content
+            if (score >= 0 && score <= 100 && score !== 99) {
+              scores.audience_score = score;
+              scores.found = true;
+              console.log(`👥 Audience from HTML: ${score}%`);
+              break;
+            } else if (score === 99) {
+              console.log(`⚠️ Skipping suspicious 99% audience score for "${title}"`);
+            }
           }
         }
       }
