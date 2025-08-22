@@ -26,6 +26,20 @@ export default function FilterPanel({ filters = {}, onApply, onClose, onReset })
   useEffect(() => {
     let active = true;
     const fetchMeta = async () => {
+      // Check if TMDB API key is available
+      if (!TMDB_API_KEY) {
+        console.warn('TMDB API key not available - filter options will be limited');
+        // Provide fallback genre and provider options
+        setGenreOptions([
+          'Action', 'Adventure', 'Animation', 'Comedy', 'Crime', 'Documentary',
+          'Drama', 'Family', 'Fantasy', 'History', 'Horror', 'Music', 'Mystery',
+          'Romance', 'Science Fiction', 'TV Movie', 'Thriller', 'War', 'Western'
+        ]);
+        setProviderOptions(US_STREAMING_PROVIDERS);
+        setLoadingMeta(false);
+        return;
+      }
+
       try {
         const [movieGenresRes, tvGenresRes] = await Promise.all([
           fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${TMDB_API_KEY}`),
@@ -55,8 +69,17 @@ export default function FilterPanel({ filters = {}, onApply, onClose, onReset })
           )
         ).sort((a, b) => a.localeCompare(b));
         if (active) setProviderOptions(provNames);
-      } catch (_) {
-        // ignore
+      } catch (error) {
+        console.warn('Failed to fetch filter metadata:', error);
+        // Provide fallback options
+        if (active) {
+          setGenreOptions([
+            'Action', 'Adventure', 'Animation', 'Comedy', 'Crime', 'Documentary',
+            'Drama', 'Family', 'Fantasy', 'History', 'Horror', 'Music', 'Mystery',
+            'Romance', 'Science Fiction', 'TV Movie', 'Thriller', 'War', 'Western'
+          ]);
+          setProviderOptions(US_STREAMING_PROVIDERS);
+        }
       } finally {
         if (active) setLoadingMeta(false);
       }

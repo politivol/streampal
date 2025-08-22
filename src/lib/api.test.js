@@ -128,12 +128,7 @@ describe('discoverTitles', () => {
         json: () =>
           Promise.resolve({ results: [{ provider_name: 'Netflix', provider_id: 8 }] })
       })
-      // discover first page (to get total_pages)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ total_pages: 500, results: [] })
-      })
-      // discover random page results
+      // discover results
       .mockResolvedValueOnce({
         ok: true,
         json: () =>
@@ -149,12 +144,11 @@ describe('discoverTitles', () => {
       minTmdb: 7
     });
 
-    const url = fetchMock.mock.calls[3][0];
+    const url = fetchMock.mock.calls[2][0];
     expect(url).toContain('/discover/movie?');
     expect(url).toContain('with_genres=28');
     expect(url).toContain('with_watch_providers=8');
     expect(url).toContain('vote_average.gte=7');
-    expect(url).toContain('page=251');
 
     expect(result).toEqual([
       {
