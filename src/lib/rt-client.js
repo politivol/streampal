@@ -265,15 +265,16 @@ class RottenTomatoesClient {
       const html = await this.fetchWithProxy(searchUrl);
 
       // Look for movie links in search results
+      // Use fresh RegExp objects/matchAll to avoid leaking lastIndex state
       const movieLinkPatterns = [
-        /href="(\/m\/[^"]+)"/g,
-        /href="(\/tv\/[^"]+)"/g
+        /href="(\/m\/[^"]+)"/gi,
+        /href="(\/tv\/[^"]+)"/gi
       ];
 
       const links = [];
       for (const pattern of movieLinkPatterns) {
-        let match;
-        while ((match = pattern.exec(html)) !== null) {
+        const matches = [...html.matchAll(pattern)];
+        for (const match of matches) {
           links.push(match[1]);
         }
       }
