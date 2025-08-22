@@ -1,3 +1,5 @@
 node_modules
 dist
 scratch/
+tools/
+supabase/.temp/

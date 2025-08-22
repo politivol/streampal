@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "supabase": "npx supabase"
   },
   "dependencies": {
     "@shoelace-style/shoelace": "^2.20.1",
