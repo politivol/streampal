@@ -760,3 +760,10 @@ body {
   gap: 0.25rem;
 }
 
+
+/* Subtle label next to RT score indicating source (Critics/Audience/OMDb) */
+.movie-card .ratings .rating--rotten .rating-source {
+  margin-left: 4px;
+  font-size: 0.8em;
+  opacity: 0.85;
+}

@@ -31,3 +31,13 @@ It builds the site with Node 20, uploads the `dist` directory, and publishes to 
   ```js
   fetch(`${import.meta.env.VITE_OMDB_PROXY_URL}?t=The%20Matrix`)
   ```
+
+- Deploy the RT proxy function used for Rotten Tomatoes scraping:
+  ```bash
+  supabase functions deploy rt-proxy
+  ```
+  Then set in your environment (local `.env.local` or your hosting env):
+  ```env
+  VITE_RT_PROXY_URL=https://<YOUR_PROJECT>.supabase.co/functions/v1/rt-proxy
+  VITE_SUPABASE_ANON_KEY=<your anon key>
+  ```

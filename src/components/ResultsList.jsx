@@ -10,6 +10,14 @@ export default function ResultsList({
   onRollAgain,
   onShowSeries,
 }) {
+  const rtLabel = (src) => {
+    if (!src) return null;
+    const s = String(src).toLowerCase();
+    if (s.includes('tomatometer')) return 'Critics';
+    if (s.includes('audience')) return 'Audience';
+    if (s === 'omdb') return 'OMDb';
+    return null;
+  };
   const handleSeen = async (r) => {
     onSeen?.(r.id);
     if (session) {
@@ -103,6 +111,9 @@ export default function ResultsList({
                   {r.ratings.rottenTomatoes != null ? (
                     <span className="badge rating rating--rotten" title={`Source: ${r.ratings.rtSource || 'unknown'}`}>
                       RT: {r.ratings.rottenTomatoes}%
+                      {rtLabel(r.ratings.rtSource) && (
+                        <span className="rating-source">({rtLabel(r.ratings.rtSource)})</span>
+                      )}
                     </span>
                   ) : (
                     <div className="badge rating rating--rotten rating--unavailable" title="Rotten Tomatoes score unavailable">
