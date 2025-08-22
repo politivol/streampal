@@ -11,12 +11,19 @@ import '@shoelace-style/shoelace/dist/components/alert/alert.js';
 import '@shoelace-style/shoelace/dist/components/icon/icon.js';
 import '@shoelace-style/shoelace/dist/components/tag/tag.js';
 import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.js';
-import { initDevHelpers } from './lib/devHelpers.js';
 
 setBasePath('https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2/dist/');
 
-// Initialize development helpers
-initDevHelpers();
+// Initialize development helpers (safely)
+if (import.meta.env.DEV) {
+  import('./lib/devHelpers.js')
+    .then(({ initDevHelpers }) => {
+      initDevHelpers();
+    })
+    .catch((error) => {
+      console.warn('Dev helpers not available:', error.message);
+    });
+}
 
 let toasts = document.getElementById('toasts');
 if (!toasts) {

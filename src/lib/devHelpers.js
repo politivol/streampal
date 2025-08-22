@@ -3,9 +3,11 @@
  */
 
 export function initDevHelpers() {
+  // Only run in development environment
   if (!import.meta.env.DEV) return;
 
-  console.log(`
+  try {
+    console.log(`
 🚀 StreamPal Development Mode Active!
 
 📋 Quick Start Guide:
@@ -34,25 +36,29 @@ export function initDevHelpers() {
 • Configure CORS for your domain in Supabase
 • Set up Google OAuth redirect URIs
 • All proxies will work correctly
-  `);
+    `);
 
-  // Make dev tools globally available
-  window.devConfig = import('./devConfig.js').then(m => m.devConfig);
-  
-  // Add helpful dev commands
-  window.clearRTCache = () => {
-    localStorage.removeItem('rt_cache');
-    sessionStorage.clear();
-    console.log('🧹 Cleared RT cache and session storage');
-  };
+    // Make dev tools globally available
+    window.devConfig = import('./devConfig.js').then(m => m.devConfig);
+    
+    // Add helpful dev commands
+    window.clearRTCache = () => {
+      localStorage.removeItem('rt_cache');
+      sessionStorage.clear();
+      console.log('🧹 Cleared RT cache and session storage');
+    };
 
-  window.testErrorHandling = () => {
-    throw new Error('Test error for development');
-  };
+    window.testErrorHandling = () => {
+      throw new Error('Test error for development');
+    };
 
-  window.toggleMockData = async () => {
-    const { devConfig } = await import('./devConfig.js');
-    devConfig.mockRTScores = !devConfig.mockRTScores;
-    console.log(`🎭 Mock RT scores: ${devConfig.mockRTScores ? 'ON' : 'OFF'}`);
-  };
+    window.toggleMockData = async () => {
+      const { devConfig } = await import('./devConfig.js');
+      devConfig.mockRTScores = !devConfig.mockRTScores;
+      console.log(`🎭 Mock RT scores: ${devConfig.mockRTScores ? 'ON' : 'OFF'}`);
+    };
+  } catch (error) {
+    // Silently fail in production or if there are import errors
+    console.warn('DevHelpers initialization failed:', error.message);
+  }
 }
