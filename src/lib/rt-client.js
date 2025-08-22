@@ -90,38 +90,53 @@ class RottenTomatoesClient {
         found: false
       };
 
-      // Multiple patterns to catch different RT page layouts
-      const tomatometerPatterns = [
-        /score-board__tomatometer[^>]*>[\s\S]*?(\d+)%/i,
-        /tomatometer[^>]*>[\s\S]*?(\d+)%/i,
-        /"tomatometer":\s*(\d+)/i,
-        /critics-score[^>]*>[\s\S]*?(\d+)%/i
-      ];
+      // First priority: JSON data (most reliable)
+      const jsonTomatometer = html.match(/"tomatometer":\s*(\d+)/i);
+      const jsonAudience = html.match(/"audienceScore":\s*(\d+)/i);
+      
+      if (jsonTomatometer) {
+        scores.tomatometer = parseInt(jsonTomatometer[1]);
+        scores.found = true;
+      }
+      
+      if (jsonAudience) {
+        scores.audience_score = parseInt(jsonAudience[1]);
+        scores.found = true;
+      }
 
-      const audiencePatterns = [
-        /score-board__audience[^>]*>[\s\S]*?(\d+)%/i,
-        /audience[^>]*>[\s\S]*?(\d+)%/i,
-        /"audienceScore":\s*(\d+)/i,
-        /popcorn[^>]*>[\s\S]*?(\d+)%/i
-      ];
+      // If JSON didn't work, try HTML patterns
+      if (!scores.tomatometer) {
+        const tomatometerPatterns = [
+          /score-board__tomatometer[^>]*>[\s\S]*?(\d+)%/i,
+          /tomatometer[^>]*>[\s\S]*?(\d+)%/i,
+          /critics-score[^>]*>[\s\S]*?(\d+)%/i
+        ];
 
-      // Try to find tomatometer score
-      for (const pattern of tomatometerPatterns) {
-        const match = html.match(pattern);
-        if (match) {
-          scores.tomatometer = parseInt(match[1]);
-          scores.found = true;
-          break;
+        for (const pattern of tomatometerPatterns) {
+          const match = html.match(pattern);
+          if (match) {
+            scores.tomatometer = parseInt(match[1]);
+            scores.found = true;
+            break;
+          }
         }
       }
 
-      // Try to find audience score
-      for (const pattern of audiencePatterns) {
-        const match = html.match(pattern);
-        if (match) {
-          scores.audience_score = parseInt(match[1]);
-          scores.found = true;
-          break;
+      // If JSON didn't work for audience, try HTML patterns
+      if (!scores.audience_score) {
+        const audiencePatterns = [
+          /score-board__audience[^>]*>[\s\S]*?(\d+)%/i,
+          /audience-score[^>]*>[\s\S]*?(\d+)%/i,
+          /popcorn[^>]*>[\s\S]*?(\d+)%/i
+        ];
+
+        for (const pattern of audiencePatterns) {
+          const match = html.match(pattern);
+          if (match) {
+            scores.audience_score = parseInt(match[1]);
+            scores.found = true;
+            break;
+          }
         }
       }
 
@@ -168,11 +183,51 @@ class RottenTomatoesClient {
         }
       }
 
-      if (links.length > 0) {
-        // Return the first valid movie link
-        const moviePath = links[0];
-        const fullUrl = `https://www.rottentomatoes.com${moviePath}`;
+      // Try to find the best match based on title
+      const cleanedTitle = this.cleanTitle(title);
+      let bestMatch = null;
+      
+      for (const link of links) {
+        // Extract the movie name from the link (e.g., /m/inception -> inception)
+        const movieName = link.replace(/^\/[^\/]+\//, '').replace(/_/g, ' ');
+        
+        // Check if this movie name matches our search
+        if (movieName.includes(cleanedTitle) || cleanedTitle.includes(movieName)) {
+          bestMatch = link;
+          break;
+        }
+      }
+
+      // If no exact match, try a fallback approach: construct the URL directly
+      if (!bestMatch && links.length === 0) {
+        // Try constructing a direct URL based on the movie title
+        const slugTitle = this.cleanTitle(title).replace(/\s+/g, '_').toLowerCase();
+        const directUrl = `https://www.rottentomatoes.com/m/${slugTitle}`;
+        console.log(`🎯 Trying direct URL approach: ${directUrl}`);
+        
+        // Test if this URL exists by fetching it
+        try {
+          await this.waitForRateLimit();
+          const testHtml = await this.fetchWithProxy(directUrl);
+          
+          // Check if this is a valid movie page (contains score elements)
+          if (testHtml.includes('tomatometer') || testHtml.includes('critics-score')) {
+            console.log(`✅ Direct URL works: ${directUrl}`);
+            return directUrl;
+          }
+        } catch (error) {
+          console.log(`❌ Direct URL failed: ${error.message}`);
+        }
+      }
+
+      if (bestMatch) {
+        const fullUrl = `https://www.rottentomatoes.com${bestMatch}`;
         console.log(`✅ Found RT movie page: ${fullUrl}`);
+        return fullUrl;
+      } else if (links.length > 0) {
+        // Fallback to first result if no good match
+        const fullUrl = `https://www.rottentomatoes.com${links[0]}`;
+        console.log(`⚠️ Using first search result: ${fullUrl}`);
         return fullUrl;
       }
 
