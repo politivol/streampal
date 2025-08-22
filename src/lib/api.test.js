@@ -107,6 +107,48 @@ describe('fetchDetails', () => {
       mediaType: 'movie'
     });
   });
+
+  it('uses RT scraper tomatometer when OMDb lacks RT rating', async () => {
+    vi.resetModules();
+    vi.stubEnv('VITE_OMDB_PROXY_URL', 'https://example.com/omdb-proxy');
+    vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'sb-anon-key');
+
+    // Spy on rtClient.getScores to return both scores
+    const rtModule = await import('./rt-client.js');
+    vi.spyOn(rtModule.rtClient, 'getScores').mockResolvedValue({
+      tomatometer: 75,
+      audience_score: 80,
+      source: 'scraped'
+    });
+
+    const { fetchDetails } = await import('./api');
+
+    const tmdbData = {
+      id: 2,
+      title: 'Movie 2',
+      poster_path: null,
+      genres: [],
+      vote_average: 7.1,
+      external_ids: { imdb_id: 'tt456' },
+      'watch/providers': { results: {} },
+      belongs_to_collection: null
+    };
+
+    // OMDb returns no Rotten Tomatoes rating
+    const omdbData = { Response: 'True', Ratings: [] };
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(tmdbData) })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(omdbData) });
+
+    global.fetch = fetchMock;
+
+    const result = await fetchDetails(2);
+
+    expect(result.ratings.rottenTomatoes).toBe(75);
+    expect(result.ratings.rtSource).toContain('tomatometer');
+  });
 });
 
 describe('discoverTitles', () => {
