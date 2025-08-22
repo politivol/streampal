@@ -108,7 +108,47 @@ class RottenTomatoesClient {
         found: false
       };
 
-      // Priority 1: HTML class patterns (most reliable for individual movie pages)
+      console.log(`🔍 Parsing RT scores for: ${title}`);
+
+      // Priority 1: score-board element attributes (most reliable method)
+      const scoreBoardRegex = /<score-board[^>]*>/i;
+      const scoreBoardMatch = html.match(scoreBoardRegex);
+      
+      if (scoreBoardMatch) {
+        console.log(`✅ Found score-board element for "${title}"`);
+        
+        // Extract tomatometer score from attributes
+        const tomatometerAttr = scoreBoardMatch[0].match(/tomatometerscore="(\d+)"/i);
+        if (tomatometerAttr) {
+          const score = parseInt(tomatometerAttr[1]);
+          if (score >= 0 && score <= 100) {
+            scores.tomatometer = score;
+            scores.found = true;
+            console.log(`🍅 Tomatometer from score-board: ${score}%`);
+          }
+        }
+        
+        // Extract audience score from attributes
+        const audienceAttr = scoreBoardMatch[0].match(/audiencescore="(\d+)"/i);
+        if (audienceAttr) {
+          const score = parseInt(audienceAttr[1]);
+          if (score >= 0 && score <= 100) {
+            scores.audience_score = score;
+            scores.found = true;
+            console.log(`👥 Audience from score-board: ${score}%`);
+          }
+        }
+
+        // If score-board method worked, return early (most reliable)
+        if (scores.found && (scores.tomatometer !== null || scores.audience_score !== null)) {
+          console.log(`✅ Using score-board attributes for "${title}" - reliable method`);
+          return scores;
+        }
+      }
+
+      console.log(`⚠️ No score-board element found for "${title}", falling back to HTML parsing`);
+
+      // Priority 2: HTML class patterns (fallback, more prone to promotional content)
       const tomatometerHtmlPatterns = [
         /tomatometer[^>]*>[\s\S]*?(\d+)%/i,
         /score-board__tomatometer[^>]*>[\s\S]*?(\d+)%/i,
@@ -121,25 +161,31 @@ class RottenTomatoesClient {
         /popcorn[^>]*>[\s\S]*?(\d+)%/i
       ];
 
-      // Try HTML patterns first (more reliable for movie-specific scores)
-      // For tomatometer, try to get the second match (first is often generic 100%)
+      // Try HTML patterns with more filtering to avoid promotional content
       for (const pattern of tomatometerHtmlPatterns) {
         const matches = [...html.matchAll(new RegExp(pattern.source, 'gi'))];
+        
         if (matches.length >= 2) {
-          // Use the second match - first is often generic 100%
+          // Use the second match - first is often promotional
           const score = parseInt(matches[1][1]);
-          if (score >= 0 && score <= 100) {
+          if (score >= 0 && score <= 100 && score !== 99) {
             scores.tomatometer = score;
             scores.found = true;
+            console.log(`🍅 Tomatometer from HTML (2nd match): ${score}%`);
             break;
+          } else if (score === 99) {
+            console.log(`⚠️ Skipping suspicious 99% tomatometer score for "${title}"`);
           }
         } else if (matches.length === 1) {
-          // Fallback to first match if only one found
           const score = parseInt(matches[0][1]);
-          if (score >= 0 && score <= 100 && score !== 100) {
+          // Be more restrictive with single matches to avoid promotional content
+          if (score >= 0 && score <= 100 && score !== 99 && score !== 100) {
             scores.tomatometer = score;
             scores.found = true;
+            console.log(`🍅 Tomatometer from HTML (single): ${score}%`);
             break;
+          } else {
+            console.log(`⚠️ Skipping ${score}% tomatometer score for "${title}" (likely promotional)`);
           }
         }
       }
@@ -148,23 +194,29 @@ class RottenTomatoesClient {
         const match = html.match(pattern);
         if (match) {
           const score = parseInt(match[1]);
-          // Only accept reasonable RT scores (0-100)
-          if (score >= 0 && score <= 100) {
+          // Be more restrictive to avoid promotional content
+          if (score >= 0 && score <= 100 && score !== 99) {
             scores.audience_score = score;
             scores.found = true;
+            console.log(`👥 Audience from HTML: ${score}%`);
             break;
+          } else if (score === 99) {
+            console.log(`⚠️ Skipping suspicious 99% audience score for "${title}"`);
           }
         }
       }
 
-      // Priority 2: JSON patterns (fallback, but can pick up promotional content)
+      // Priority 3: JSON patterns (last resort, also filter 99%)
       if (!scores.tomatometer) {
         const jsonTomatometer = html.match(/"tomatometer":\s*(\d+)/i);
         if (jsonTomatometer) {
           const score = parseInt(jsonTomatometer[1]);
-          if (score >= 0 && score <= 100) {
+          if (score >= 0 && score <= 100 && score !== 99) {
             scores.tomatometer = score;
             scores.found = true;
+            console.log(`📊 Tomatometer from JSON: ${score}%`);
+          } else if (score === 99) {
+            console.log(`⚠️ Skipping suspicious 99% JSON tomatometer for "${title}"`);
           }
         }
       }
@@ -173,17 +225,20 @@ class RottenTomatoesClient {
         const jsonAudience = html.match(/"audienceScore":\s*(\d+)/i);
         if (jsonAudience) {
           const score = parseInt(jsonAudience[1]);
-          if (score >= 0 && score <= 100) {
+          if (score >= 0 && score <= 100 && score !== 99) {
             scores.audience_score = score;
             scores.found = true;
+            console.log(`📊 Audience from JSON: ${score}%`);
+          } else if (score === 99) {
+            console.log(`⚠️ Skipping suspicious 99% JSON audience for "${title}"`);
           }
         }
       }
 
       if (scores.found) {
-        console.log(`✅ Parsed RT scores for "${title}": Critics ${scores.tomatometer}%, Audience ${scores.audience_score}%`);
+        console.log(`✅ Final RT scores for "${title}": Critics ${scores.tomatometer}%, Audience ${scores.audience_score}%`);
       } else {
-        console.log(`⚠️ No RT scores found in HTML for "${title}"`);
+        console.log(`❌ No valid RT scores found for "${title}"`);
       }
 
       return scores;
