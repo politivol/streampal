@@ -101,7 +101,7 @@ describe('fetchDetails', () => {
       releaseDate: null,
       runtime: null,
       genres: ['Action'],
-      ratings: { tmdb: 8.3, rottenTomatoes: 88 },
+      ratings: { tmdb: 8.3, rottenTomatoes: 88, rtSource: 'omdb' },
       streaming: ['Netflix', 'Prime Video', 'Max', 'Hulu'],
       series: { name: 'Movie 1', totalSeasons: '2', imdbId: 'tt123', type: 'omdb' },
       mediaType: 'movie'

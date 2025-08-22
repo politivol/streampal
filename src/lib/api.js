@@ -1,6 +1,7 @@
 import { normalizeProviderName, US_STREAMING_PROVIDERS } from './providers.js';
 import { rtClient } from './rt-client.js';
 import config from './config.js';
+import { handleDevError } from './devConfig.js';
 
 const TMDB_API_KEY = config.tmdbApiKey;
 const OMDB_PROXY = config.omdbProxyUrl;
@@ -163,7 +164,8 @@ export async function fetchDetails(tmdbId) {
         console.log(`⚠️ OMDb proxy failed: ${omdbRes.status} ${omdbRes.statusText}`);
       }
     } catch (error) {
-      console.log('⚠️ OMDb error, will try RT scraper fallback...', error.message);
+      handleDevError(error, 'OMDb API');
+      console.log('⚠️ OMDb error, will try RT scraper fallback...');
     }
   }
 
@@ -179,13 +181,13 @@ export async function fetchDetails(tmdbId) {
       
       if (scrapedScores?.tomatometer !== null) {
         rotten = scrapedScores.tomatometer;
-        rtSource = 'scraped';
-        console.log(`✅ Scraped RT score found: ${rotten}%`);
+        rtSource = scrapedScores.source || 'scraped';
+        console.log(`✅ ${rtSource === 'mock' ? 'Mock' : 'Scraped'} RT score found: ${rotten}%`);
       } else {
         console.log(`⚠️ RT scraper also failed for: ${movieTitle}`);
       }
     } catch (error) {
-      console.log('⚠️ RT scraping error:', error.message);
+      handleDevError(error, 'RT Scraper Fallback');
     }
   }
 

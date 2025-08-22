@@ -71,9 +71,12 @@ export default function AuthPanel({ onSession, onClose }) {
       if (script.parentNode) {
         script.parentNode.removeChild(script);
       }
-      // Remove the rendered Google button
+      // Remove the rendered Google button safely
       if (googleButtonRef.current) {
-        googleButtonRef.current.innerHTML = '';
+        // Clear all child nodes safely instead of using innerHTML
+        while (googleButtonRef.current.firstChild) {
+          googleButtonRef.current.removeChild(googleButtonRef.current.firstChild);
+        }
       }
     };
   }, []);

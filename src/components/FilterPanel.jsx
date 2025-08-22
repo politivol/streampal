@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   normalizeProviderName,
   US_STREAMING_PROVIDERS,
@@ -68,15 +68,26 @@ export default function FilterPanel({ filters = {}, onApply, onClose, onReset })
     };
   }, []);
 
-  const removeGenre = (g) => {
+  const removeGenre = useCallback((g) => {
     setSelectedGenres((prev) => prev.filter((sg) => sg !== g));
-  };
+  }, []);
 
-  const removeProvider = (p) => {
+  const removeProvider = useCallback((p) => {
     setProviders((prev) => prev.filter((sp) => sp !== p));
-  };
+  }, []);
 
-  const apply = () => {
+  const isGeneralSearch = useMemo(() => 
+    selectedGenres.length === 0 &&
+    providers.length === 0 &&
+    releaseDate === 'any' &&
+    !seriesOnly &&
+    minTmdb === 0 &&
+    minRotten === 0 &&
+    !notStreaming,
+    [selectedGenres.length, providers.length, releaseDate, seriesOnly, minTmdb, minRotten, notStreaming]
+  );
+
+  const apply = useCallback(() => {
     onApply?.({
       mediaType,
       genres: selectedGenres,
@@ -86,18 +97,11 @@ export default function FilterPanel({ filters = {}, onApply, onClose, onReset })
       minTmdb,
       minRotten,
       notStreaming,
-      isGeneralSearch:
-        selectedGenres.length === 0 &&
-        providers.length === 0 &&
-        releaseDate === 'any' &&
-        !seriesOnly &&
-        minTmdb === 0 &&
-        minRotten === 0 &&
-        !notStreaming,
+      isGeneralSearch,
     });
-  };
+  }, [mediaType, selectedGenres, releaseDate, providers, seriesOnly, minTmdb, minRotten, notStreaming, isGeneralSearch, onApply]);
 
-  const reset = () => {
+  const reset = useCallback(() => {
     const defaults = {
       mediaType: 'movie',
       genres: [],
@@ -120,9 +124,7 @@ export default function FilterPanel({ filters = {}, onApply, onClose, onReset })
     setMinRotten(defaults.minRotten);
     setNotStreaming(defaults.notStreaming);
     onReset?.(defaults);
-  };
-
-  const isGeneralSearch = selectedGenres.length === 0 && providers.length === 0 && releaseDate === 'any' && !seriesOnly && minTmdb === 0 && minRotten === 0 && !notStreaming;
+  }, [onReset]);
 
   return (
     <aside className={`filter-panel ${open ? 'open' : ''}`}>

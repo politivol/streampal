@@ -5,6 +5,7 @@ import FilterPanel from './components/FilterPanel.jsx';
 import ResultsList from './components/ResultsList.jsx';
 import SeriesPanel from './components/SeriesPanel.jsx';
 import AuthPanel from './components/AuthPanel.jsx';
+import DevStatus from './components/DevStatus.jsx';
 import { fetchTrending, fetchDetails, searchTitles, discoverTitles } from './lib/api.js';
 import { supabase } from './lib/supabaseClient.js';
 
@@ -312,6 +313,7 @@ function App() {
           onClose={() => setShowAuth(false)}
         />
       )}
+      <DevStatus />
     </div>
   );
 }

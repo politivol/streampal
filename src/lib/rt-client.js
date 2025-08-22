@@ -1,5 +1,7 @@
 // Complete RT scraper implementation for production use
 import config from './config.js';
+import { perfMonitor } from './performance.js';
+import { devConfig, getMockRTScore, handleDevError } from './devConfig.js';
 
 const RT_PROXY_URL = config.rtProxyUrl;
 const SB_ANON = config.supabaseAnonKey;
@@ -40,9 +42,11 @@ class RottenTomatoesClient {
     const cached = this.cache.get(cacheKey);
     
     if (cached && (Date.now() - cached.timestamp < this.cacheExpiry)) {
+      perfMonitor.recordCacheHit('rt_scraper');
       return cached.data;
     }
     
+    perfMonitor.recordCacheMiss('rt_scraper');
     return null;
   }
 
@@ -183,53 +187,76 @@ class RottenTomatoesClient {
 
   // Get RT scores for a movie
   async getScores(title, year = null) {
-    try {
-      console.log(`🍅 Getting RT scores for: ${title}${year ? ` (${year})` : ''}`);
+    return perfMonitor.measureAPICall('rt_scraper', async () => {
+      try {
+        console.log(`🍅 Getting RT scores for: ${title}${year ? ` (${year})` : ''}`);
 
-      // Check cache first
-      const cached = this.getFromCache(title, year);
-      if (cached) {
-        console.log(`🔄 Using cached RT data for: ${title}`);
-        return cached;
-      }
+        // Check cache first
+        const cached = this.getFromCache(title, year);
+        if (cached) {
+          console.log(`🔄 Using cached RT data for: ${title}`);
+          return cached;
+        }
 
-      // Search for the movie
-      const movieUrl = await this.searchMovie(title, year);
-      if (!movieUrl) {
+        // In development without RT proxy, use mock data
+        if (devConfig.mockRTScores && !RT_PROXY_URL) {
+          const mockScore = getMockRTScore(title);
+          if (mockScore) {
+            console.log(`🎭 Using mock RT data for development: ${title}`);
+            this.setCache(title, year, {
+              ...mockScore,
+              url: `https://www.rottentomatoes.com/m/${title.toLowerCase().replace(/\s+/g, '_')}`,
+              source: 'mock',
+              timestamp: Date.now()
+            });
+            return mockScore;
+          }
+        }
+
+        // Skip RT scraping if proxy is not available (development)
+        if (!RT_PROXY_URL) {
+          console.warn(`⚠️ RT proxy not configured - skipping RT scraping for: ${title}`);
+          return null;
+        }
+
+        // Search for the movie
+        const movieUrl = await this.searchMovie(title, year);
+        if (!movieUrl) {
+          return null;
+        }
+
+        // Fetch movie page
+        await this.waitForRateLimit();
+        const html = await this.fetchWithProxy(movieUrl);
+
+        // Parse scores
+        const scores = this.parseScores(html, title);
+
+        if (scores.found) {
+          // Cache the result
+          this.setCache(title, year, {
+            tomatometer: scores.tomatometer,
+            audience_score: scores.audience_score,
+            url: movieUrl,
+            source: 'scraped',
+            timestamp: Date.now()
+          });
+
+          return {
+            tomatometer: scores.tomatometer,
+            audience_score: scores.audience_score,
+            url: movieUrl,
+            source: 'scraped'
+          };
+        }
+
+        return null;
+
+      } catch (error) {
+        handleDevError(error, 'RT Scraper');
         return null;
       }
-
-      // Fetch movie page
-      await this.waitForRateLimit();
-      const html = await this.fetchWithProxy(movieUrl);
-
-      // Parse scores
-      const scores = this.parseScores(html, title);
-
-      if (scores.found) {
-        // Cache the result
-        this.setCache(title, year, {
-          tomatometer: scores.tomatometer,
-          audience_score: scores.audience_score,
-          url: movieUrl,
-          source: 'scraped',
-          timestamp: Date.now()
-        });
-
-        return {
-          tomatometer: scores.tomatometer,
-          audience_score: scores.audience_score,
-          url: movieUrl,
-          source: 'scraped'
-        };
-      }
-
-      return null;
-
-    } catch (error) {
-      console.error('RT scraper error:', error);
-      return null;
-    }
+    });
   }
 
   // Clean expired cache entries
