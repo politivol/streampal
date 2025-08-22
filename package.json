@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run --passWithNoTests",
-    "supabase": "npx supabase"
+    "supabase": "npx supabase",
+    "notes": "powershell -NoProfile -ExecutionPolicy Bypass -File ./tools/print-notes.ps1",
+    "codex": "powershell -NoProfile -ExecutionPolicy Bypass -File ./tools/start-codex.ps1"
   },
   "dependencies": {
     "@shoelace-style/shoelace": "^2.20.1",
