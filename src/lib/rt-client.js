@@ -61,20 +61,38 @@ class RottenTomatoesClient {
   // Fetch with proxy
   async fetchWithProxy(url) {
     if (!RT_PROXY_URL) {
+      console.error('❌ RT proxy not configured - RT_PROXY_URL is missing');
       throw new Error('RT proxy not configured');
     }
 
+    console.log(`🔗 RT Proxy URL: ${RT_PROXY_URL}`);
     const proxyUrl = `${RT_PROXY_URL}?url=${encodeURIComponent(url)}`;
     const headers = {};
     
     if (SB_ANON) {
       headers.apikey = SB_ANON;
       headers.Authorization = `Bearer ${SB_ANON}`;
+      console.log(`🔑 Using Supabase auth headers`);
+    } else {
+      console.warn('⚠️ No Supabase auth key available');
     }
 
+    console.log(`📡 Fetching: ${proxyUrl}`);
     const response = await fetch(proxyUrl, { headers });
     
     if (!response.ok) {
+      console.error(`❌ RT Proxy failed: ${response.status} ${response.statusText}`);
+      console.error(`📍 URL attempted: ${proxyUrl}`);
+      console.error(`🔑 Headers used:`, headers);
+      
+      // Try to get response body for more details
+      try {
+        const errorBody = await response.text();
+        console.error(`📝 Error response body:`, errorBody);
+      } catch (e) {
+        console.error(`❌ Could not read error response body`);
+      }
+      
       throw new Error(`Proxy request failed: ${response.status} ${response.statusText}`);
     }
     
