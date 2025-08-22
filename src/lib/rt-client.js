@@ -108,52 +108,74 @@ class RottenTomatoesClient {
         found: false
       };
 
-      // First priority: JSON data (most reliable)
-      const jsonTomatometer = html.match(/"tomatometer":\s*(\d+)/i);
-      const jsonAudience = html.match(/"audienceScore":\s*(\d+)/i);
-      
-      if (jsonTomatometer) {
-        scores.tomatometer = parseInt(jsonTomatometer[1]);
-        scores.found = true;
-      }
-      
-      if (jsonAudience) {
-        scores.audience_score = parseInt(jsonAudience[1]);
-        scores.found = true;
-      }
+      // Priority 1: HTML class patterns (most reliable for individual movie pages)
+      const tomatometerHtmlPatterns = [
+        /tomatometer[^>]*>[\s\S]*?(\d+)%/i,
+        /score-board__tomatometer[^>]*>[\s\S]*?(\d+)%/i,
+        /critics-score[^>]*>[\s\S]*?(\d+)%/i
+      ];
 
-      // If JSON didn't work, try HTML patterns
-      if (!scores.tomatometer) {
-        const tomatometerPatterns = [
-          /score-board__tomatometer[^>]*>[\s\S]*?(\d+)%/i,
-          /tomatometer[^>]*>[\s\S]*?(\d+)%/i,
-          /critics-score[^>]*>[\s\S]*?(\d+)%/i
-        ];
+      const audienceHtmlPatterns = [
+        /audience-score[^>]*>[\s\S]*?(\d+)%/i,
+        /score-board__audience[^>]*>[\s\S]*?(\d+)%/i,
+        /popcorn[^>]*>[\s\S]*?(\d+)%/i
+      ];
 
-        for (const pattern of tomatometerPatterns) {
-          const match = html.match(pattern);
-          if (match) {
-            scores.tomatometer = parseInt(match[1]);
+      // Try HTML patterns first (more reliable for movie-specific scores)
+      // For tomatometer, try to get the second match (first is often generic 100%)
+      for (const pattern of tomatometerHtmlPatterns) {
+        const matches = [...html.matchAll(new RegExp(pattern.source, 'gi'))];
+        if (matches.length >= 2) {
+          // Use the second match - first is often generic 100%
+          const score = parseInt(matches[1][1]);
+          if (score >= 0 && score <= 100) {
+            scores.tomatometer = score;
+            scores.found = true;
+            break;
+          }
+        } else if (matches.length === 1) {
+          // Fallback to first match if only one found
+          const score = parseInt(matches[0][1]);
+          if (score >= 0 && score <= 100 && score !== 100) {
+            scores.tomatometer = score;
             scores.found = true;
             break;
           }
         }
       }
 
-      // If JSON didn't work for audience, try HTML patterns
-      if (!scores.audience_score) {
-        const audiencePatterns = [
-          /score-board__audience[^>]*>[\s\S]*?(\d+)%/i,
-          /audience-score[^>]*>[\s\S]*?(\d+)%/i,
-          /popcorn[^>]*>[\s\S]*?(\d+)%/i
-        ];
-
-        for (const pattern of audiencePatterns) {
-          const match = html.match(pattern);
-          if (match) {
-            scores.audience_score = parseInt(match[1]);
+      for (const pattern of audienceHtmlPatterns) {
+        const match = html.match(pattern);
+        if (match) {
+          const score = parseInt(match[1]);
+          // Only accept reasonable RT scores (0-100)
+          if (score >= 0 && score <= 100) {
+            scores.audience_score = score;
             scores.found = true;
             break;
+          }
+        }
+      }
+
+      // Priority 2: JSON patterns (fallback, but can pick up promotional content)
+      if (!scores.tomatometer) {
+        const jsonTomatometer = html.match(/"tomatometer":\s*(\d+)/i);
+        if (jsonTomatometer) {
+          const score = parseInt(jsonTomatometer[1]);
+          if (score >= 0 && score <= 100) {
+            scores.tomatometer = score;
+            scores.found = true;
+          }
+        }
+      }
+      
+      if (!scores.audience_score) {
+        const jsonAudience = html.match(/"audienceScore":\s*(\d+)/i);
+        if (jsonAudience) {
+          const score = parseInt(jsonAudience[1]);
+          if (score >= 0 && score <= 100) {
+            scores.audience_score = score;
+            scores.found = true;
           }
         }
       }
