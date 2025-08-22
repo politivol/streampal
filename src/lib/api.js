@@ -198,10 +198,10 @@ export async function fetchDetails(tmdbId) {
       console.log(`🍅 Trying RT scraper fallback for: ${movieTitle}`);
       const scrapedScores = await rtClient.getScores(movieTitle, year);
       
-      if (scrapedScores?.tomatometer !== null) {
-        rotten = scrapedScores.tomatometer;
-        rtSource = scrapedScores.source || 'scraped';
-        console.log(`✅ ${rtSource === 'mock' ? 'Mock' : 'Scraped'} RT score found: ${rotten}%`);
+      if (scrapedScores?.audience_score !== null) {
+        rotten = scrapedScores.audience_score;
+        rtSource = (scrapedScores.source || 'scraped') + ' (audience)';
+        console.log(`✅ ${rtSource === 'mock (audience)' ? 'Mock' : 'Scraped'} RT audience score found: ${rotten}%`);
       } else {
         console.log(`⚠️ RT scraper also failed for: ${movieTitle}`);
       }
