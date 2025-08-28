@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App.jsx';
 import './styles.css';
 import '@shoelace-style/shoelace/dist/themes/light.css';
 import '@shoelace-style/shoelace/dist/components/button/button.js';
@@ -13,6 +12,24 @@ import '@shoelace-style/shoelace/dist/components/tag/tag.js';
 import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.js';
 
 setBasePath('https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2/dist/');
+
+// Lazy load the main App component
+const App = React.lazy(() => import('./App.jsx'));
+
+// Loading component
+const LoadingSpinner = () => (
+  <div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100vh',
+    flexDirection: 'column',
+    gap: '1rem'
+  }}>
+    <sl-spinner style={{ fontSize: '3rem' }}></sl-spinner>
+    <p>Loading Streampal...</p>
+  </div>
+);
 
 // Initialize development helpers (safely)
 if (import.meta.env.DEV) {
@@ -39,6 +56,8 @@ Object.assign(toasts.style, {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <App />
+    <Suspense fallback={<LoadingSpinner />}>
+      <App />
+    </Suspense>
   </React.StrictMode>
 );
