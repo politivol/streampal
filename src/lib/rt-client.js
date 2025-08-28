@@ -121,10 +121,12 @@ class RottenTomatoesClient {
         const tomatometerAttr = scoreBoardMatch[0].match(/tomatometerscore="(\d+)"/i);
         if (tomatometerAttr) {
           const score = parseInt(tomatometerAttr[1]);
-          if (score >= 0 && score <= 100) {
+          if (score >= 0 && score <= 100 && score !== 99 && score !== 83) {
             scores.tomatometer = score;
             scores.found = true;
             console.log(`🍅 Tomatometer from score-board: ${score}%`);
+          } else if (score === 99 || score === 83) {
+            console.log(`⚠️ Skipping suspicious ${score}% score-board tomatometer for "${title}"`);
           }
         }
         
@@ -132,10 +134,12 @@ class RottenTomatoesClient {
         const audienceAttr = scoreBoardMatch[0].match(/audiencescore="(\d+)"/i);
         if (audienceAttr) {
           const score = parseInt(audienceAttr[1]);
-          if (score >= 0 && score <= 100) {
+          if (score >= 0 && score <= 100 && score !== 99 && score !== 83) {
             scores.audience_score = score;
             scores.found = true;
             console.log(`👥 Audience from score-board: ${score}%`);
+          } else if (score === 99 || score === 83) {
+            console.log(`⚠️ Skipping suspicious ${score}% score-board audience for "${title}"`);
           }
         }
 
@@ -152,24 +156,24 @@ class RottenTomatoesClient {
       const jsonTomatometer = html.match(/"tomatometer":\s*(\d+)/i);
       if (jsonTomatometer) {
         const score = parseInt(jsonTomatometer[1]);
-        if (score >= 0 && score <= 100 && score !== 99) {
+        if (score >= 0 && score <= 100 && score !== 99 && score !== 83) {
           scores.tomatometer = score;
           scores.found = true;
           console.log(`📊 Tomatometer from JSON: ${score}%`);
-        } else if (score === 99) {
-          console.log(`⚠️ Skipping suspicious 99% JSON tomatometer for "${title}"`);
+        } else if (score === 99 || score === 83) {
+          console.log(`⚠️ Skipping suspicious ${score}% JSON tomatometer for "${title}"`);
         }
       }
 
       const jsonAudience = html.match(/"audienceScore":\s*(\d+)/i);
       if (jsonAudience) {
         const score = parseInt(jsonAudience[1]);
-        if (score >= 0 && score <= 100 && score !== 99) {
+        if (score >= 0 && score <= 100 && score !== 99 && score !== 83) {
           scores.audience_score = score;
           scores.found = true;
           console.log(`📊 Audience from JSON: ${score}%`);
-        } else if (score === 99) {
-          console.log(`⚠️ Skipping suspicious 99% JSON audience for "${title}"`);
+        } else if (score === 99 || score === 83) {
+          console.log(`⚠️ Skipping suspicious ${score}% JSON audience for "${title}"`);
         }
       }
 
@@ -195,18 +199,19 @@ class RottenTomatoesClient {
           if (matches.length >= 2) {
             // Use the second match - first is often promotional
             const score = parseInt(matches[1][1]);
-            if (score >= 0 && score <= 100 && score !== 99) {
+            // Be more restrictive to avoid promotional content
+            if (score >= 0 && score <= 100 && score !== 99 && score !== 83) {
               scores.tomatometer = score;
               scores.found = true;
               console.log(`🍅 Tomatometer from HTML (2nd match): ${score}%`);
               break;
-            } else if (score === 99) {
-              console.log(`⚠️ Skipping suspicious 99% tomatometer score for "${title}"`);
+            } else if (score === 99 || score === 83) {
+              console.log(`⚠️ Skipping suspicious ${score}% tomatometer score for "${title}" (likely promotional)`);
             }
           } else if (matches.length === 1) {
             const score = parseInt(matches[0][1]);
             // Be more restrictive with single matches to avoid promotional content
-            if (score >= 0 && score <= 100 && score !== 99 && score !== 100) {
+            if (score >= 0 && score <= 100 && score !== 99 && score !== 100 && score !== 83) {
               scores.tomatometer = score;
               scores.found = true;
               console.log(`🍅 Tomatometer from HTML (single): ${score}%`);
@@ -223,13 +228,13 @@ class RottenTomatoesClient {
           if (match) {
             const score = parseInt(match[1]);
             // Be more restrictive to avoid promotional content
-            if (score >= 0 && score <= 100 && score !== 99) {
+            if (score >= 0 && score <= 100 && score !== 99 && score !== 83) {
               scores.audience_score = score;
               scores.found = true;
               console.log(`👥 Audience from HTML: ${score}%`);
               break;
-            } else if (score === 99) {
-              console.log(`⚠️ Skipping suspicious 99% audience score for "${title}"`);
+            } else if (score === 99 || score === 83) {
+              console.log(`⚠️ Skipping suspicious ${score}% audience score for "${title}" (likely promotional)`);
             }
           }
         }
