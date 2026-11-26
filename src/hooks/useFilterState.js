@@ -4,8 +4,10 @@ import {
   US_STREAMING_PROVIDERS,
 } from '../lib/providers.js';
 import config from '../lib/config.js';
+import { tmdbFetch } from '../lib/tmdb.js';
 
 const TMDB_API_KEY = config.tmdbApiKey;
+const TMDB_PROXY = config.tmdbProxyUrl;
 
 export function useFilterState(initialFilters = {}) {
   const [mediaType, setMediaType] = useState(initialFilters.mediaType || 'movie');
@@ -18,7 +20,7 @@ export function useFilterState(initialFilters = {}) {
   const [providerSearch, setProviderSearch] = useState('');
   const [seriesOnly, setSeriesOnly] = useState(initialFilters.seriesOnly || false);
   const [minTmdb, setMinTmdb] = useState(Number(initialFilters.minTmdb) || 0);
-  const [minRotten, setMinRotten] = useState(Number(initialFilters.minRotten) || 0);
+  const [minImdb, setMinImdb] = useState(Number(initialFilters.minImdb) || 0);
   const [notStreaming, setNotStreaming] = useState(initialFilters.notStreaming || false);
   const [loadingMeta, setLoadingMeta] = useState(true);
 
@@ -27,7 +29,7 @@ export function useFilterState(initialFilters = {}) {
     let active = true;
     const fetchMeta = async () => {
       // Check if TMDB API key is available
-      if (!TMDB_API_KEY) {
+      if (!TMDB_API_KEY && !TMDB_PROXY) {
         console.warn('TMDB API key not available - filter options will be limited');
         // Provide fallback genre and provider options
         setGenreOptions([
@@ -41,25 +43,17 @@ export function useFilterState(initialFilters = {}) {
       }
 
       try {
-        const [movieGenresRes, tvGenresRes] = await Promise.all([
-          fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${TMDB_API_KEY}`),
-          fetch(`https://api.themoviedb.org/3/genre/tv/list?api_key=${TMDB_API_KEY}`),
+        const [movieGenres, tvGenres, provData] = await Promise.all([
+          tmdbFetch('/genre/movie/list'),
+          tmdbFetch('/genre/tv/list'),
+          tmdbFetch('/watch/providers/movie', { watch_region: 'US' }),
         ]);
-        if (!active) return;
-        const movieGenres = await movieGenresRes.json();
-        const tvGenres = await tvGenresRes.json();
         if (!active) return;
         const combined = [...(movieGenres.genres || []), ...(tvGenres.genres || [])];
         const names = Array.from(new Set(combined.map((g) => g.name))).sort((a, b) =>
           a.localeCompare(b)
         );
         if (active) setGenreOptions(names);
-
-        const provRes = await fetch(
-          `https://api.themoviedb.org/3/watch/providers/movie?api_key=${TMDB_API_KEY}&watch_region=US`
-        );
-        if (!active) return;
-        const provData = await provRes.json();
         if (!active) return;
         const provNames = Array.from(
           new Set(
@@ -104,9 +98,9 @@ export function useFilterState(initialFilters = {}) {
     releaseDate === 'any' &&
     !seriesOnly &&
     minTmdb === 0 &&
-    minRotten === 0 &&
+    minImdb === 0 &&
     !notStreaming,
-    [selectedGenres.length, providers.length, releaseDate, seriesOnly, minTmdb, minRotten, notStreaming]
+    [selectedGenres.length, providers.length, releaseDate, seriesOnly, minTmdb, minImdb, notStreaming]
   );
 
   const getCurrentFilters = useCallback(() => ({
@@ -116,10 +110,10 @@ export function useFilterState(initialFilters = {}) {
     providers,
     seriesOnly,
     minTmdb,
-    minRotten,
+    minImdb,
     notStreaming,
     isGeneralSearch,
-  }), [mediaType, selectedGenres, releaseDate, providers, seriesOnly, minTmdb, minRotten, notStreaming, isGeneralSearch]);
+  }), [mediaType, selectedGenres, releaseDate, providers, seriesOnly, minTmdb, minImdb, notStreaming, isGeneralSearch]);
 
   const resetFilters = useCallback(() => {
     setMediaType('movie');
@@ -130,7 +124,7 @@ export function useFilterState(initialFilters = {}) {
     setProviderSearch('');
     setSeriesOnly(false);
     setMinTmdb(0);
-    setMinRotten(0);
+    setMinImdb(0);
     setNotStreaming(false);
   }, []);
 
@@ -146,7 +140,7 @@ export function useFilterState(initialFilters = {}) {
     providerSearch,
     seriesOnly,
     minTmdb,
-    minRotten,
+    minImdb,
     notStreaming,
     loadingMeta,
     isGeneralSearch,
@@ -160,7 +154,7 @@ export function useFilterState(initialFilters = {}) {
     setProviderSearch,
     setSeriesOnly,
     setMinTmdb,
-    setMinRotten,
+    setMinImdb,
     setNotStreaming,
 
     // Actions

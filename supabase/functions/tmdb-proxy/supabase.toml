@@ -1,0 +1,2 @@
+[functions.tmdb-proxy]
+verify_jwt = true

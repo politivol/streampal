@@ -13,22 +13,24 @@ export default function SeenList({ session, onClose }) {
     if (session) {
       const { data, error } = await supabase
         .from('user_items')
-        .select('id,payload')
+        .select('id,payload,list,tmdb_id')
         .eq('user_id', session.user.id)
-        .eq('list', 'seen')
         .order('id');
       if (!activeRef.current) return;
       if (error) {
         toast(error.message, 'danger', 5000, 'exclamation-octagon');
       } else if (data) {
-        setSeenItems(data);
+        setSeenItems(data.filter((item) => item.list === 'seen'));
+        setPinnedItems(data.filter((item) => item.list === 'pinned'));
       }
     } else {
       const seen = JSON.parse(sessionStorage.getItem('seen') || '[]');
-      if (activeRef.current) setSeenItems(seen);
+      const pinned = JSON.parse(sessionStorage.getItem('pinned') || '[]');
+      if (activeRef.current) {
+        setSeenItems(seen);
+        setPinnedItems(pinned);
+      }
     }
-    const pinned = JSON.parse(sessionStorage.getItem('pinned') || '[]');
-    if (activeRef.current) setPinnedItems(pinned);
   };
 
   useEffect(() => {
@@ -46,7 +48,7 @@ export default function SeenList({ session, onClose }) {
         .from('user_items')
         .insert({
           user_id: session.user.id,
-          tmdb_id: item.id,
+          tmdb_id: String(item.id),
           item_type: item.mediaType || 'movie',
           list: 'seen',
           payload: { title: item.title },
@@ -67,26 +69,28 @@ export default function SeenList({ session, onClose }) {
   };
 
   const removeItem = async (id, list) => {
-    if (session && list === 'seen') {
+    if (session) {
       const { error } = await supabase
         .from('user_items')
         .delete()
         .eq('id', id)
         .eq('user_id', session.user.id)
-        .eq('list', 'seen');
+        .eq('list', list);
       if (error) {
         toast(error.message, 'danger', 5000, 'exclamation-octagon');
       } else {
         fetchItems();
         toast('Removed item', 'success', 3000, 'check-circle');
       }
-    } else {
-      const key = list === 'seen' ? 'seen' : 'pinned';
-      const items = JSON.parse(sessionStorage.getItem(key) || '[]').filter((m) => m.id !== id);
-      sessionStorage.setItem(key, JSON.stringify(items));
-      if (key === 'seen') setSeenItems(items); else setPinnedItems(items);
-      toast('Removed item', 'success', 3000, 'check-circle');
+      return;
     }
+    const key = list === 'seen' ? 'seen' : 'pinned';
+    const items = JSON.parse(sessionStorage.getItem(key) || '[]')
+      .filter((item) => String(item.id) !== String(id));
+    sessionStorage.setItem(key, JSON.stringify(items));
+    if (key === 'seen') setSeenItems(items);
+    else setPinnedItems(items);
+    toast('Removed item', 'success', 3000, 'check-circle');
   };
 
   return (

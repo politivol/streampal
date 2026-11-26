@@ -1,43 +1,157 @@
-import { useEffect, useState, useRef } from 'react';
-import { fetchTrending, fetchDetails, searchTitles, discoverTitles } from '../lib/api.js';
+import { useEffect, useRef, useState } from 'react';
+import { fetchDetails, searchTitles, discoverTitles } from '../lib/api.js';
 import { supabase } from '../lib/supabaseClient.js';
+
+const DETAIL_LIMIT = 12;
+
+function emptyFilters() {
+  return {
+    mediaType: 'movie',
+    genres: [],
+    releaseDate: 'any',
+    providers: [],
+    seriesOnly: false,
+    minTmdb: 0,
+    minImdb: 0,
+    notStreaming: false,
+    isGeneralSearch: true,
+  };
+}
+
+function idKey(id) {
+  return String(id);
+}
+
+async function readSaved(session) {
+  if (session) {
+    const { data, error } = await supabase
+      .from('user_items')
+      .select('tmdb_id, list')
+      .eq('user_id', session.user.id);
+    if (error) throw new Error(error.message);
+    const seen = [];
+    const pinned = [];
+    for (const row of data || []) {
+      const id = idKey(row.tmdb_id);
+      if (row.list === 'seen') seen.push(id);
+      else if (row.list === 'pinned') pinned.push(id);
+    }
+    return { seen: new Set(seen), pinned: new Set(pinned) };
+  }
+
+  const seen = JSON.parse(sessionStorage.getItem('seen') || '[]');
+  const pinned = JSON.parse(sessionStorage.getItem('pinned') || '[]');
+  return {
+    seen: new Set(seen.map((item) => idKey(item.id))),
+    pinned: new Set(pinned.map((item) => idKey(item.id))),
+  };
+}
+
+function isGeneralSearch(filters) {
+  if (typeof filters.isGeneralSearch === 'boolean') return filters.isGeneralSearch;
+  return (
+    !filters.genres?.length &&
+    (!filters.releaseDate || filters.releaseDate === 'any') &&
+    !filters.providers?.length &&
+    !filters.seriesOnly &&
+    !filters.minTmdb &&
+    !filters.minImdb &&
+    !filters.notStreaming
+  );
+}
 
 export function useAppState() {
   const [session, setSession] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [showSeen, setShowSeen] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
-  const [filters, setFilters] = useState({
-    mediaType: 'movie',
-    genres: [],
-    releaseDate: 'any',
-    providers: [],
-    seriesOnly: false,
-    minTmdb: '',
-    minRotten: '',
-    notStreaming: false,
-    isGeneralSearch: true,
-  });
+  const [filters, setFilters] = useState(emptyFilters);
   const [results, setResults] = useState([]);
-  const [pinnedIds, setPinnedIds] = useState(new Set());
-  const [seenIds, setSeenIds] = useState(new Set());
+  const [pinnedIds, setPinnedIds] = useState(() => new Set());
+  const [seenIds, setSeenIds] = useState(() => new Set());
   const [series, setSeries] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [resultsTitle, setResultsTitle] = useState('Trending');
-  const seenLoaded = useRef(false);
+  const requestId = useRef(0);
+  const filtersRef = useRef(filters);
+  const savedRef = useRef({ seen: new Set(), pinned: new Set() });
+  filtersRef.current = filters;
 
-  const startLoading = () => setLoading(true);
-  const stopLoading = () => setLoading(false);
+  const loadResults = async (nextFilters, saved, existingRequestId) => {
+    const id = existingRequestId ?? ++requestId.current;
+    setLoading(true);
+    setError('');
+    try {
+      const general = isGeneralSearch(nextFilters);
+      const mediaType = nextFilters.mediaType || 'movie';
+      const query = general
+        ? { ...nextFilters, mediaType, randomPage: true, isGeneralSearch: true }
+        : { ...nextFilters, mediaType, randomPage: Boolean(nextFilters.randomPage), isGeneralSearch: false };
+      const data = await discoverTitles(query);
+      if (id !== requestId.current) return;
 
-  // Authentication setup
+      const hidden = saved || savedRef.current;
+      const title = data.length
+        ? general
+          ? `Random ${mediaType === 'tv' ? 'TV Shows' : 'Movies'}`
+          : `Filtered ${mediaType === 'tv' ? 'TV Shows' : 'Movies'}`
+        : 'Trending';
+
+      const pool = data
+        .filter((item) => !hidden.pinned.has(idKey(item.id)) && !hidden.seen.has(idKey(item.id)))
+        .slice(0, DETAIL_LIMIT);
+      const detailed = (
+        await Promise.all(
+          pool.map((item) => fetchDetails(item.id, item.mediaType || mediaType).catch(() => null))
+        )
+      ).filter(Boolean);
+      if (id !== requestId.current) return;
+
+      const applied = detailed.filter((item) => {
+        if (general) return true;
+        if (nextFilters.genres?.length && !nextFilters.genres.every((genre) => item.genres?.includes(genre))) return false;
+        if (nextFilters.releaseDate && nextFilters.releaseDate !== 'any' && item.releaseDate) {
+          const diff = new Date().getFullYear() - new Date(item.releaseDate).getFullYear();
+          if (nextFilters.releaseDate === 'past_year' && diff > 1) return false;
+          if (nextFilters.releaseDate === 'older' && diff <= 1) return false;
+        }
+        if (
+          nextFilters.providers?.length &&
+          !nextFilters.notStreaming &&
+          !nextFilters.providers.some((provider) => item.streaming?.includes(provider))
+        ) {
+          return false;
+        }
+        if (nextFilters.notStreaming && item.streaming?.length) return false;
+        if (nextFilters.seriesOnly && !item.series) return false;
+        if (nextFilters.minTmdb && (item.ratings?.tmdb ?? 0) < parseFloat(nextFilters.minTmdb)) return false;
+        if (nextFilters.minImdb && (item.ratings?.imdb ?? 0) < parseFloat(nextFilters.minImdb)) return false;
+        return true;
+      });
+
+      setResults((prev) => {
+        const pinned = prev.filter((item) => hidden.pinned.has(idKey(item.id)));
+        return [...pinned, ...applied];
+      });
+      setResultsTitle(title);
+    } catch (err) {
+      if (id !== requestId.current) return;
+      setError(err.message || 'Could not load titles');
+      setResults([]);
+    } finally {
+      if (id === requestId.current) setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+    supabase.auth.getSession().then(({ data: { session: next } }) => {
+      setSession(next);
     });
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+    } = supabase.auth.onAuthStateChange((_event, next) => {
+      setSession(next);
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -46,196 +160,106 @@ export function useAppState() {
     if (session) setShowAuth(false);
   }, [session]);
 
-  // Load seen items
   useEffect(() => {
-    const fetchSeenIds = async () => {
-      if (session) {
-        const { data } = await supabase
-          .from('user_items')
-          .select('tmdb_id')
-          .eq('user_id', session.user.id)
-          .eq('list', 'seen');
-        setSeenIds(new Set(data?.map((i) => i.tmdb_id)));
-      } else {
-        const seen = JSON.parse(sessionStorage.getItem('seen') || '[]');
-        setSeenIds(new Set(seen.map((i) => i.id)));
+    const id = ++requestId.current;
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const saved = await readSaved(session);
+        if (cancelled || id !== requestId.current) return;
+        savedRef.current = {
+          seen: new Set(saved.seen),
+          pinned: new Set(saved.pinned),
+        };
+        setSeenIds(savedRef.current.seen);
+        setPinnedIds(savedRef.current.pinned);
+        await loadResults(filtersRef.current, savedRef.current, id);
+      } catch (err) {
+        if (cancelled || id !== requestId.current) return;
+        setError(err.message || 'Could not load your lists');
+        setLoading(false);
       }
+    })();
+    return () => {
+      cancelled = true;
     };
-
-    seenLoaded.current = false;
-    fetchSeenIds();
+    // Reload lists when the signed-in user changes. Filters are read from a ref.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
-  const loadResults = async (f = filters) => {
-    startLoading();
-    try {
-    const isGeneral =
-      typeof f.isGeneralSearch === 'boolean'
-        ? f.isGeneralSearch
-        : (!f.genres?.length &&
-          (!f.releaseDate || f.releaseDate === 'any') &&
-          !f.providers?.length &&
-          !f.seriesOnly &&
-          !f.minTmdb &&
-          !f.minRotten &&
-          !f.notStreaming);
-
-    let data;
-    let title = 'Trending';
-
-    // If it's a general search (no filters applied), fetch diverse content
-    if (isGeneral) {
-      // Fetch a mix of trending content from different time periods for variety
-      const [weeklyTrending, dailyTrending] = await Promise.all([
-        fetchTrending(f.mediaType || 'movie', 'week'),
-        fetchTrending(f.mediaType || 'movie', 'day')
-      ]);
-
-      // Combine and shuffle for variety
-      const combined = [...weeklyTrending, ...dailyTrending];
-      const uniqueById = combined.reduce((acc, item) => {
-        acc[item.id] = item;
-        return acc;
-      }, {});
-      data = Object.values(uniqueById);
-
-      // Shuffle the array for random order
-      for (let i = data.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [data[i], data[j]] = [data[j], data[i]];
-      }
-
-      title = data.length > 0 ? `Random ${f.mediaType === 'tv' ? 'TV Shows' : 'Movies'}` : 'Trending';
-    } else {
-      // Use TMDB discover endpoint when filters are applied
-      data = await discoverTitles(f);
-      title = `Filtered ${f.mediaType === 'tv' ? 'TV Shows' : 'Movies'}`;
-    }
-
-    const filtered = data.filter(
-      (r) => !pinnedIds.has(r.id) && !seenIds.has(r.id)
-    );
-    const detailed = (
-      await Promise.all(filtered.map((r) => fetchDetails(r.id).catch(() => null)))
-    ).filter(Boolean);
-    const applied = detailed.filter((r) => {
-      // Skip filtering if it's a general search
-      if (isGeneral) return true;
-      if (f.genres.length && !f.genres.every((g) => r.genres?.includes(g))) return false;
-      if (f.releaseDate !== 'any' && r.releaseDate) {
-        const year = new Date(r.releaseDate).getFullYear();
-        const current = new Date().getFullYear();
-        const diff = current - year;
-        if (f.releaseDate === 'past_year' && diff > 1) return false;
-        if (f.releaseDate === 'older' && diff <= 1) return false;
-      }
-      if (!f.notStreaming && f.providers.length && !f.providers.some((p) => r.streaming?.includes(p))) return false;
-      if (f.notStreaming) {
-        if (r.streaming?.length) return false;
-      } else {
-        if (!r.streaming?.length) return false;
-      }
-      if (f.seriesOnly && !r.series) return false;
-      if (f.minTmdb && (r.ratings.tmdb ?? 0) < parseFloat(f.minTmdb)) return false;
-      if (
-        f.minRotten &&
-        (r.ratings.rottenTomatoes ?? 0) < parseInt(f.minRotten, 10)
-      )
-        return false;
-      return true;
-    });
-    setResults((prev) => {
-      const pinned = prev.filter((r) => pinnedIds.has(r.id));
-      return [...pinned, ...applied];
-    });
-    setResultsTitle(title);
-    } finally {
-      stopLoading();
-    }
-  };
-
-  useEffect(() => {
-    if (seenLoaded.current) return;
-    seenLoaded.current = true;
-    loadResults(filters);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seenIds]);
-
-  const applyFilters = async (f) => {
-    setFilters(f);
+  const applyFilters = async (nextFilters) => {
+    const next = {
+      ...emptyFilters(),
+      ...nextFilters,
+      minTmdb: nextFilters.minTmdb || 0,
+      minImdb: nextFilters.minImdb || 0,
+    };
+    setFilters(next);
     setShowFilters(false);
-    startLoading();
-    try {
-      await loadResults(f);
-    } finally {
-      stopLoading();
-    }
+    await loadResults(next, savedRef.current);
   };
 
   const resetFilters = async () => {
-    const defaults = {
-      mediaType: 'movie',
-      genres: [],
-      releaseDate: 'any',
-      providers: [],
-      seriesOnly: false,
-      minTmdb: 0,
-      minRotten: 0,
-      notStreaming: false,
-      isGeneralSearch: true,
-    };
+    const defaults = emptyFilters();
     setFilters(defaults);
     setShowFilters(false);
-    startLoading();
-    try {
-      await loadResults(defaults);
-    } finally {
-      stopLoading();
-    }
+    await loadResults(defaults, savedRef.current);
   };
 
   const rollAgain = async () => {
-    startLoading();
-    try {
-      await loadResults(filters);
-    } finally {
-      stopLoading();
-    }
+    await loadResults({ ...filtersRef.current, randomPage: true }, savedRef.current);
   };
 
-  const handleSearch = async (q) => {
-    startLoading();
+  const handleSearch = async (query) => {
+    const id = ++requestId.current;
+    setLoading(true);
+    setError('');
     try {
-      const data = await searchTitles(q, filters.mediaType || 'movie');
-      const filtered = data.filter((r) => !pinnedIds.has(r.id));
+      const mediaType = filtersRef.current.mediaType || 'movie';
+      const data = await searchTitles(query, mediaType);
+      if (id !== requestId.current) return;
+      const hidden = savedRef.current;
+      const pool = data
+        .filter((item) => !hidden.seen.has(idKey(item.id)))
+        .slice(0, DETAIL_LIMIT);
       const detailed = (
-        await Promise.all(filtered.map((r) => fetchDetails(r.id).catch(() => null)))
+        await Promise.all(
+          pool.map((item) => fetchDetails(item.id, item.mediaType || mediaType).catch(() => null))
+        )
       ).filter(Boolean);
+      if (id !== requestId.current) return;
       setResults(detailed);
-      setResultsTitle(`Search results for "${q}"`);
+      setResultsTitle(`Search results for "${query}"`);
+    } catch (err) {
+      if (id !== requestId.current) return;
+      setError(err.message || 'Search failed');
+      setResults([]);
     } finally {
-      stopLoading();
+      if (id === requestId.current) setLoading(false);
     }
   };
 
   const handleSeen = (id) => {
-    setResults((rs) => rs.filter((r) => r.id !== id));
-    setPinnedIds((set) => {
-      const next = new Set(set);
-      next.delete(id);
-      return next;
-    });
-    setSeenIds((set) => {
-      const next = new Set(set);
-      next.add(id);
-      return next;
-    });
+    const key = idKey(id);
+    const pinned = new Set(savedRef.current.pinned);
+    pinned.delete(key);
+    const seen = new Set(savedRef.current.seen);
+    seen.add(key);
+    savedRef.current = { seen, pinned };
+    setResults((items) => items.filter((item) => idKey(item.id) !== key));
+    setPinnedIds(pinned);
+    setSeenIds(seen);
   };
 
   const togglePin = (id) => {
-    setPinnedIds((set) => {
-      const next = new Set(set);
-      if (next.has(id)) next.delete(id); else next.add(id);
+    const key = idKey(id);
+    setPinnedIds((current) => {
+      const next = new Set(current);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      savedRef.current = { ...savedRef.current, pinned: next };
       return next;
     });
   };
@@ -246,7 +270,6 @@ export function useAppState() {
   };
 
   return {
-    // State
     session,
     showFilters,
     showSeen,
@@ -257,9 +280,8 @@ export function useAppState() {
     seenIds,
     series,
     loading,
+    error,
     resultsTitle,
-
-    // Actions
     setSession,
     setShowFilters,
     setShowSeen,

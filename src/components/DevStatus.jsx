@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { devConfig } from '../lib/devConfig.js';
 import config from '../lib/config.js';
 
 export default function DevStatus() {
@@ -12,12 +11,11 @@ export default function DevStatus() {
 
     const checkStatus = () => {
       setStatus({
-        tmdbApi: !!config.tmdbApiKey,
+        tmdbApi: !!(config.tmdbApiKey || config.tmdbProxyUrl),
+        tmdbProxy: !!config.tmdbProxyUrl,
         omdbProxy: !!config.omdbProxyUrl,
-        rtProxy: !!config.rtProxyUrl,
         googleAuth: !!config.googleClientId,
         supabase: !!(config.supabaseUrl && config.supabaseAnonKey),
-        mockMode: devConfig.mockRTScores
       });
     };
 
@@ -48,12 +46,10 @@ export default function DevStatus() {
         <span>Dev Status</span>
         {isVisible && (
           <div style={{ marginLeft: '10px' }}>
-            <div>📊 TMDB API: {status.tmdbApi ? '✅' : '❌'}</div>
-            <div>🎬 OMDB Proxy: {status.omdbProxy ? '✅' : '⚠️ CORS'}</div>
-            <div>🍅 RT Proxy: {status.rtProxy ? '✅' : '⚠️ CORS'}</div>
-            <div>🔐 Google Auth: {status.googleAuth ? '⚠️ Local' : '❌'}</div>
+            <div>📊 TMDB: {status.tmdbProxy ? '✅ proxy' : status.tmdbApi ? '⚠️ key in browser' : '❌'}</div>
+            <div>🎬 OMDB Proxy: {status.omdbProxy ? '✅' : '⚠️ off'}</div>
+            <div>🔐 Google Auth: {status.googleAuth ? '✅' : '❌'}</div>
             <div>🗄️ Supabase: {status.supabase ? '✅' : '❌'}</div>
-            {status.mockMode && <div>🎭 Mock RT Scores: ✅</div>}
             <div style={{ marginTop: '5px', fontSize: '10px' }}>
               ⚠️ = Expected in local dev
             </div>

@@ -10,41 +10,66 @@ export default function ResultsList({
   onRollAgain,
   onShowSeries,
 }) {
-  const rtLabel = (src) => {
-    if (!src) return null;
-    const s = String(src).toLowerCase();
-    if (s.includes('tomatometer')) return 'Critics';
-    if (s.includes('audience')) return 'Audience';
-    if (s === 'omdb') return 'OMDb';
-    return null;
-  };
   const handleSeen = async (r) => {
-    onSeen?.(r.id);
+    const id = String(r.id);
+    onSeen?.(id);
     if (session) {
       await supabase
         .from('user_items')
         .upsert({
           user_id: session.user.id,
-          tmdb_id: r.id,
-          item_type: r.mediaType,
+          tmdb_id: id,
+          item_type: r.mediaType || 'movie',
           list: 'seen',
           payload: { title: r.title },
         }, { onConflict: 'user_id,tmdb_id,list' });
+      await supabase
+        .from('user_items')
+        .delete()
+        .eq('user_id', session.user.id)
+        .eq('tmdb_id', id)
+        .eq('list', 'pinned');
     } else {
       const seen = JSON.parse(sessionStorage.getItem('seen') || '[]');
-      if (!seen.find((i) => i.id === r.id)) seen.push({ id: r.id, payload: { title: r.title } });
+      if (!seen.find((item) => String(item.id) === id)) {
+        seen.push({ id, payload: { title: r.title } });
+      }
       sessionStorage.setItem('seen', JSON.stringify(seen));
+      const pinned = JSON.parse(sessionStorage.getItem('pinned') || '[]')
+        .filter((item) => String(item.id) !== id);
+      sessionStorage.setItem('pinned', JSON.stringify(pinned));
     }
-    const pinned = (JSON.parse(sessionStorage.getItem('pinned') || '[]')).filter((i) => i.id !== r.id);
-    sessionStorage.setItem('pinned', JSON.stringify(pinned));
   };
 
   const handlePin = async (r) => {
-    onPin?.(r.id);
+    const id = String(r.id);
+    const wasPinned = pinnedIds.has(id);
+    onPin?.(id);
+    if (session) {
+      if (wasPinned) {
+        await supabase
+          .from('user_items')
+          .delete()
+          .eq('user_id', session.user.id)
+          .eq('tmdb_id', id)
+          .eq('list', 'pinned');
+      } else {
+        await supabase
+          .from('user_items')
+          .upsert({
+            user_id: session.user.id,
+            tmdb_id: id,
+            item_type: r.mediaType || 'movie',
+            list: 'pinned',
+            payload: { title: r.title },
+          }, { onConflict: 'user_id,tmdb_id,list' });
+      }
+      return;
+    }
     const pinned = JSON.parse(sessionStorage.getItem('pinned') || '[]');
-    const idx = pinned.findIndex((i) => i.id === r.id);
+    const idx = pinned.findIndex((item) => String(item.id) === id);
     if (idx >= 0) pinned.splice(idx, 1);
-    else pinned.push({ id: r.id, payload: { title: r.title } });
+    else pinned.push({ id, payload: { title: r.title } });
     sessionStorage.setItem('pinned', JSON.stringify(pinned));
   };
 
@@ -99,7 +124,7 @@ export default function ResultsList({
                   </div>
                 )}
                 <div className="ratings">
-                  {r.ratings.tmdb != null ? (
+                  {r.ratings?.tmdb != null ? (
                     <span className="badge rating rating--tmdb">
                       TMDB: {r.ratings.tmdb.toFixed ? r.ratings.tmdb.toFixed(1) : r.ratings.tmdb}
                     </span>
@@ -108,16 +133,13 @@ export default function ResultsList({
                       TMDB
                     </div>
                   )}
-                  {r.ratings.rottenTomatoes != null ? (
-                    <span className="badge rating rating--rotten" title={`Source: ${r.ratings.rtSource || 'unknown'}`}>
-                      RT: {r.ratings.rottenTomatoes}%
-                      {rtLabel(r.ratings.rtSource) && (
-                        <span className="rating-source">({rtLabel(r.ratings.rtSource)})</span>
-                      )}
+                  {r.ratings?.imdb != null ? (
+                    <span className="badge rating rating--rotten">
+                      IMDb: {Number(r.ratings.imdb).toFixed(1)}
                     </span>
                   ) : (
-                    <div className="badge rating rating--rotten rating--unavailable" title="Rotten Tomatoes score unavailable">
-                      RT: --
+                    <div className="badge rating rating--rotten rating--unavailable" title="IMDb score unavailable">
+                      IMDb: --
                     </div>
                   )}
                 </div>
@@ -151,7 +173,7 @@ export default function ResultsList({
                   data-action="pin"
                   onClick={() => handlePin(r)}
                 >
-                  {pinnedIds.has(r.id) ? 'Unpin' : 'Pin'}
+                  {pinnedIds.has(String(r.id)) ? 'Unpin' : 'Pin'}
                 </sl-button>
               </div>
             </sl-card>

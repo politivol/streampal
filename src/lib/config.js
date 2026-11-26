@@ -3,28 +3,30 @@ const REQUIRED_KEYS = {
   supabaseAnonKey: 'VITE_SUPABASE_ANON_KEY',
   siteUrl: 'VITE_SITE_URL',
   googleClientId: 'VITE_GOOGLE_CLIENT_ID',
-  tmdbApiKey: 'VITE_TMDB_API_KEY',
 };
 
 const OPTIONAL_KEYS = {
   omdbProxyUrl: 'VITE_OMDB_PROXY_URL',
-  rtProxyUrl: 'VITE_RT_PROXY_URL',
+  tmdbApiKey: 'VITE_TMDB_API_KEY',
+  tmdbProxyUrl: 'VITE_TMDB_PROXY_URL',
 };
 
 const config = {};
 const missing = [];
 
-// Handle required keys
 for (const [key, envKey] of Object.entries(REQUIRED_KEYS)) {
   const value = import.meta.env[envKey];
   if (!value) missing.push(envKey);
-  if (value) config[key] = value;
+  else config[key] = value;
 }
 
-// Handle optional keys (don't fail if missing)
 for (const [key, envKey] of Object.entries(OPTIONAL_KEYS)) {
   const value = import.meta.env[envKey];
   if (value) config[key] = value;
+}
+
+if (!config.tmdbApiKey && !config.tmdbProxyUrl) {
+  missing.push('VITE_TMDB_PROXY_URL or VITE_TMDB_API_KEY');
 }
 
 if (missing.length) {
