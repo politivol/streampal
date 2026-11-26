@@ -3,3 +3,7 @@ dist
 scratch/
 tools/
 supabase/.temp/
+.env
+.env.*
+!.env.example
+

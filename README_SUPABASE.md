@@ -1,63 +1,32 @@
-# Supabase Deployment
+# Supabase
 
-This project uses Supabase for database tables and edge functions.
+## Schema
 
-## Database schema
-
-1. Install the [Supabase CLI](https://supabase.com/docs/guides/cli) and log in.
-2. Apply the schema:
-   ```bash
-   supabase db push
-   ```
-   or run the SQL file directly:
-   ```bash
-   psql < supabase/sql/schema.sql
-   ```
-
-## OMDb proxy function
-
-1. Set the OMDb API key as a secret:
-   ```bash
-   supabase secrets set OMDB_KEY=YOUR_KEY
-   ```
-2. Deploy the function:
-   ```bash
-   supabase functions deploy omdb-proxy
-   ```
-3. To test locally:
-   ```bash
-   supabase functions serve omdb-proxy
-   ```
-
-Client code can use the deployed function via an environment variable:
-```js
-fetch(`${import.meta.env.VITE_OMDB_PROXY_URL}?t=The%20Matrix`)
+```bash
+supabase db push
 ```
 
-The function proxies requests to the [OMDb API](https://www.omdbapi.com/) and
-sets CORS headers allowing requests from `https://politivol.github.io/streampal/`.
+`0002_tighten_anon_defaults.sql` stops future `public` tables from being granted to `anon` automatically. Existing profile and list policies stay as they are.
 
-## Rotten Tomatoes proxy function
+## Functions
 
-This project includes an RT scraping proxy at `supabase/functions/rt-proxy`. It fetches HTML
-from Rotten Tomatoes and returns it with appropriate CORS headers for the client-side scraper.
+```bash
+supabase secrets set TMDB_API_KEY=YOUR_TMDB_KEY OMDB_KEY=YOUR_OMDB_KEY
+supabase functions deploy tmdb-proxy
+supabase functions deploy omdb-proxy
+supabase functions deploy rt-proxy
+```
 
-1. Deploy the function:
-   ```bash
-   supabase functions deploy rt-proxy
-   ```
-2. Set the client environment variable to point to the deployed function:
-   - Local dev: add to `.env.local`
-     ```env
-     VITE_RT_PROXY_URL=https://<YOUR_PROJECT>.supabase.co/functions/v1/rt-proxy
-     VITE_SUPABASE_ANON_KEY=<your anon key>
-     ```
-   - GitHub Pages build (if needed): configure these in your Pages build environment.
+- `tmdb-proxy` holds the TMDB key. It only allows discover, search, movie, tv, genre, watch-provider, and collection paths. `verify_jwt` is on, so the caller must send the Supabase anon key.
+- `omdb-proxy` only forwards `i`, `t`, `y`, `type`, `plot`, and `Season`. It does not accept an `apikey` from the browser. CORS is limited to GitHub Pages and local Vite, not whatever `Origin` the request claims.
+- `rt-proxy` is disabled (HTTP 410). Redeploy it to shut the old HTML proxy.
 
-3. Verify quickly with a smoke test (optional):
-   ```bash
-   VITE_SUPABASE_ANON_KEY=<anon> \
-   VITE_RT_PROXY_URL=https://<YOUR_PROJECT>.supabase.co/functions/v1/rt-proxy \
-   npx vitest run scratch/rt-live.test.js
-   ```
-   Expected: returns at least one valid score (0–100) for a known title.
+Optional extra origins: `supabase secrets set ALLOWED_ORIGINS=https://example.com`
+
+Client:
+
+```env
+VITE_TMDB_PROXY_URL=https://YOUR_PROJECT.supabase.co/functions/v1/tmdb-proxy
+VITE_OMDB_PROXY_URL=https://YOUR_PROJECT.supabase.co/functions/v1/omdb-proxy
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```

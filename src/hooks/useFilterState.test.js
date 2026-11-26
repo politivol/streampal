@@ -50,7 +50,7 @@ describe('useFilterState', () => {
     expect(result.current.releaseDate).toBe('any');
     expect(result.current.seriesOnly).toBe(false);
     expect(result.current.minTmdb).toBe(0);
-    expect(result.current.minRotten).toBe(0);
+    expect(result.current.minImdb).toBe(0);
     expect(result.current.notStreaming).toBe(false);
   });
 
@@ -70,7 +70,7 @@ describe('useFilterState', () => {
       'https://api.themoviedb.org/3/genre/tv/list?api_key=test-api-key'
     );
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://api.themoviedb.org/3/watch/providers/movie?api_key=test-api-key&watch_region=US'
+      'https://api.themoviedb.org/3/watch/providers/movie?watch_region=US&api_key=test-api-key'
     );
     expect(result.current.genreOptions).toEqual(['Action', 'Comedy']);
     expect(result.current.providerOptions).toEqual(['Hulu', 'Netflix']);
@@ -139,7 +139,7 @@ describe('useFilterState', () => {
       result.current.setProviders(['Netflix']);
       result.current.setReleaseDate('past_year');
       result.current.setMinTmdb(7.5);
-      result.current.setMinRotten(80);
+      result.current.setMinImdb(8);
       result.current.setSeriesOnly(true);
       result.current.setNotStreaming(true);
     });
@@ -153,7 +153,7 @@ describe('useFilterState', () => {
       providers: ['Netflix'],
       seriesOnly: true,
       minTmdb: 7.5,
-      minRotten: 80,
+      minImdb: 8,
       notStreaming: true,
       isGeneralSearch: false,
     });
@@ -177,7 +177,7 @@ describe('useFilterState', () => {
     expect(result.current.selectedGenres).toEqual([]);
     expect(result.current.providers).toEqual([]);
     expect(result.current.minTmdb).toBe(0);
-    expect(result.current.minRotten).toBe(0);
+    expect(result.current.minImdb).toBe(0);
     expect(result.current.seriesOnly).toBe(false);
     expect(result.current.notStreaming).toBe(false);
   });

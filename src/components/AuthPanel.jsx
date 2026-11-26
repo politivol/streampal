@@ -29,9 +29,11 @@ export default function AuthPanel({ onSession, onClose }) {
       options: { emailRedirectTo: config.siteUrl },
     });
     if (error) toast(error.message, 'danger', 5000, 'exclamation-octagon');
-    else {
+    else if (data.session) {
       toast('Account created successfully.', 'success', 5000, 'check-circle');
       onSession?.(data.session);
+    } else {
+      toast('Account created. Check your email to confirm it.', 'success', 5000, 'check-circle');
     }
   };
 

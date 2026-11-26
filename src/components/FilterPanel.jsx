@@ -19,7 +19,7 @@ export default function FilterPanel({ filters = {}, onApply, onClose, onReset })
     providerSearch,
     seriesOnly,
     minTmdb,
-    minRotten,
+    minImdb,
     notStreaming,
     loadingMeta,
     setMediaType,
@@ -30,7 +30,7 @@ export default function FilterPanel({ filters = {}, onApply, onClose, onReset })
     setProviderSearch,
     setSeriesOnly,
     setMinTmdb,
-    setMinRotten,
+    setMinImdb,
     setNotStreaming,
     removeGenre,
     removeProvider,
@@ -109,9 +109,9 @@ export default function FilterPanel({ filters = {}, onApply, onClose, onReset })
 
       <RatingFilters
         minTmdb={minTmdb}
-        minRotten={minRotten}
+        minImdb={minImdb}
         onMinTmdbChange={setMinTmdb}
-        onMinRottenChange={setMinRotten}
+        onMinImdbChange={setMinImdb}
       />
 
       <OtherFilters

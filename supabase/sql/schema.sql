@@ -64,9 +64,10 @@ grant select, insert, update, delete on table user_items to authenticated;
 -- Sequences (for bigserial IDs)
 grant usage, select on all sequences in schema public to authenticated;
 
--- Default privileges for future tables/sequences created in public
+-- Default privileges for future tables/sequences created in public.
+-- Do not grant anon select on every future table. Add an explicit grant per table.
 alter default privileges in schema public
-  grant select on tables to anon;
+  revoke select on tables from anon;
 alter default privileges in schema public
   grant select, insert, update, delete on tables to authenticated;
 alter default privileges in schema public

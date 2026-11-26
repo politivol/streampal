@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "supabase": "npx supabase",
     "notes": "powershell -NoProfile -ExecutionPolicy Bypass -File ./tools/print-notes.ps1",
     "codex": "powershell -NoProfile -ExecutionPolicy Bypass -File ./tools/start-codex.ps1"
@@ -15,7 +15,6 @@
   "dependencies": {
     "@shoelace-style/shoelace": "^2.20.1",
     "@supabase/supabase-js": "^2.55.0",
-    "node-fetch": "^3.3.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

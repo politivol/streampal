@@ -1,223 +1,150 @@
 import { normalizeProviderName, US_STREAMING_PROVIDERS } from './providers.js';
-import { rtClient } from './rt-client.js';
 import config from './config.js';
-import { handleDevError } from './devConfig.js';
+import { tmdbFetch } from './tmdb.js';
 
-const TMDB_API_KEY = config.tmdbApiKey;
 const OMDB_PROXY = config.omdbProxyUrl;
 const SB_ANON = config.supabaseAnonKey;
 
-// Helper function to check if TMDB API is available
-function checkTMDBAvailable() {
-  if (!TMDB_API_KEY) {
-    throw new Error('TMDB API key not configured - movie search unavailable');
-  }
-}
+const genreCache = new Map();
+const providerCache = new Map();
+const detailCache = new Map();
 
 function extractProviders(watch) {
   const us = watch?.results?.US;
   if (!us) return [];
   const providerSet = new Set();
-  const groups = ['flatrate', 'rent', 'buy', 'free', 'ads'];
-  for (const g of groups) {
-    for (const p of us[g] || []) {
-      const name = normalizeProviderName(p.provider_name);
+  for (const group of ['flatrate', 'rent', 'buy', 'free', 'ads']) {
+    for (const provider of us[group] || []) {
+      const name = normalizeProviderName(provider.provider_name);
       if (US_STREAMING_PROVIDERS.includes(name)) providerSet.add(name);
     }
   }
   return Array.from(providerSet);
 }
 
-export async function fetchTrending(mediaType, timeWindow = 'week') {
-  try {
-    checkTMDBAvailable();
-    const page = Math.floor(Math.random() * 500) + 1;
-    let res = await fetch(
-      `https://api.themoviedb.org/3/trending/${mediaType}/${timeWindow}?api_key=${TMDB_API_KEY}&page=${page}`
-    );
-    let data = await res.json();
-    if (!data.results?.length) {
-      res = await fetch(
-        `https://api.themoviedb.org/3/trending/${mediaType}/${timeWindow}?api_key=${TMDB_API_KEY}`
-      );
-      data = await res.json();
-    }
-    return (data.results || []).map((r) => ({
-      id: r.id,
-      title: r.title || r.name || '',
-      artwork: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : null,
-      mediaType: r.media_type,
-    }));
-  } catch (error) {
-    console.warn('Failed to fetch trending content:', error.message);
-    return [];
-  }
+function isoDate(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
-export async function searchTitles(query, mediaType = 'multi') {
-  try {
-    checkTMDBAvailable();
-    const res = await fetch(
-      `https://api.themoviedb.org/3/search/${mediaType}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`
-    );
-    const data = await res.json();
-    return (data.results || []).map((r) => ({
-      id: r.id,
-      title: r.title || r.name || '',
-      artwork: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : null,
-      mediaType: r.media_type || mediaType,
-    }));
-  } catch (error) {
-    console.warn('Failed to search titles:', error.message);
-    return [];
+async function genreIdMap(mediaType) {
+  if (!genreCache.has(mediaType)) {
+    const data = await tmdbFetch(`/genre/${mediaType}/list`);
+    const map = {};
+    for (const genre of data.genres || []) map[genre.name] = genre.id;
+    genreCache.set(mediaType, map);
   }
+  return genreCache.get(mediaType);
+}
+
+async function providerIdMap(mediaType) {
+  if (!providerCache.has(mediaType)) {
+    const data = await tmdbFetch(`/watch/providers/${mediaType}`, { watch_region: 'US' });
+    const map = {};
+    for (const provider of data.results || []) {
+      map[normalizeProviderName(provider.provider_name)] = provider.provider_id;
+    }
+    providerCache.set(mediaType, map);
+  }
+  return providerCache.get(mediaType);
+}
+
+function mapTitles(results, mediaType) {
+  return (results || []).map((item) => ({
+    id: item.id,
+    title: item.title || item.name || '',
+    artwork: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : null,
+    mediaType: item.media_type || mediaType,
+  }));
+}
+
+export async function searchTitles(query, mediaType = 'movie') {
+  const type = mediaType === 'tv' ? 'tv' : 'movie';
+  const data = await tmdbFetch(`/search/${type}`, { query });
+  return mapTitles(data.results, type);
 }
 
 export async function discoverTitles(filters = {}) {
-  try {
-    checkTMDBAvailable();
-    const mediaType = filters.mediaType || 'movie';
-    const params = new URLSearchParams();
-    params.set('api_key', TMDB_API_KEY);
-    params.set('sort_by', 'popularity.desc');
+  const mediaType = filters.mediaType === 'tv' ? 'tv' : 'movie';
+  const params = {
+    sort_by: 'popularity.desc',
+    include_adult: 'false',
+    watch_region: 'US',
+  };
 
-    if (filters.genres?.length) {
-      try {
-        const genreRes = await fetch(
-          `https://api.themoviedb.org/3/genre/${mediaType}/list?api_key=${TMDB_API_KEY}`
-        );
-        const genreData = await genreRes.json();
-        const map = {};
-        for (const g of genreData.genres || []) map[g.name] = g.id;
-        const ids = filters.genres.map((n) => map[n]).filter(Boolean);
-        if (ids.length) params.set('with_genres', ids.join(','));
-      } catch (_) {
-        // ignore genre errors
-      }
-    }
-
-    if (filters.providers?.length) {
-      try {
-        const provRes = await fetch(
-          `https://api.themoviedb.org/3/watch/providers/${mediaType}?api_key=${TMDB_API_KEY}&watch_region=US`
-        );
-        const provData = await provRes.json();
-        const map = {};
-        for (const p of provData.results || []) {
-          const name = normalizeProviderName(p.provider_name);
-          map[name] = p.provider_id;
-        }
-        const ids = filters.providers.map((n) => map[n]).filter(Boolean);
-        if (ids.length) {
-          params.set('with_watch_providers', ids.join(','));
-          params.set('watch_region', 'US');
-        }
-      } catch (_) {
-        // ignore provider errors
-      }
-    }
-
-    if (filters.minTmdb) params.set('vote_average.gte', filters.minTmdb);
-    const base = `https://api.themoviedb.org/3/discover/${mediaType}?${params.toString()}`;
-    const res = await fetch(base);
-    const data = await res.json();
-    return (data.results || []).map((r) => ({
-      id: r.id,
-      title: r.title || r.name || '',
-      artwork: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : null,
-      mediaType: r.media_type || mediaType,
-    }));
-  } catch (error) {
-    console.warn('Failed to discover titles:', error.message);
-    return [];
+  if (filters.genres?.length) {
+    const map = await genreIdMap(mediaType);
+    const ids = filters.genres.map((name) => map[name]).filter(Boolean);
+    if (ids.length) params.with_genres = ids.join(',');
   }
+
+  const providers = await providerIdMap(mediaType);
+  if (filters.notStreaming) {
+    const ids = US_STREAMING_PROVIDERS.map((name) => providers[name]).filter(Boolean);
+    if (ids.length) params.without_watch_providers = ids.join('|');
+  } else if (filters.providers?.length) {
+    const ids = filters.providers.map((name) => providers[name]).filter(Boolean);
+    if (ids.length) params.with_watch_providers = ids.join('|');
+  }
+
+  if (filters.minTmdb) params['vote_average.gte'] = filters.minTmdb;
+
+  if (filters.releaseDate === 'past_year' || filters.releaseDate === 'older') {
+    const cutoff = new Date();
+    cutoff.setFullYear(cutoff.getFullYear() - 1);
+    const dateKey = mediaType === 'tv' ? 'first_air_date' : 'primary_release_date';
+    const bound = filters.releaseDate === 'past_year' ? 'gte' : 'lte';
+    params[`${dateKey}.${bound}`] = isoDate(cutoff);
+  }
+
+  if (filters.randomPage) {
+    params['vote_count.gte'] = 50;
+    params.page = Math.floor(Math.random() * 20) + 1;
+  }
+
+  let data = await tmdbFetch(`/discover/${mediaType}`, params);
+  if (filters.randomPage && !data.results?.length && params.page !== 1) {
+    data = await tmdbFetch(`/discover/${mediaType}`, { ...params, page: 1 });
+  }
+  return mapTitles(data.results, mediaType);
 }
 
-export async function fetchDetails(tmdbId) {
-  try {
-    checkTMDBAvailable();
-    const endpoints = ['movie', 'tv'];
-    let detailData;
-    let mediaType;
-    for (const type of endpoints) {
-      const res = await fetch(`https://api.themoviedb.org/3/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&append_to_response=external_ids,watch/providers`);
-      if (res.ok) {
-        detailData = await res.json();
-        mediaType = type;
-        break;
-      }
-    }
-    if (!detailData) throw new Error('Not found');
+function parseImdb(omdbData) {
+  const value = omdbData?.Ratings?.find((rating) => rating.Source === 'Internet Movie Database')?.Value;
+  if (!value || value === 'N/A') return null;
+  const score = parseFloat(value);
+  return Number.isFinite(score) ? score : null;
+}
+
+async function fetchOmdb(imdbId) {
+  if (!imdbId || !OMDB_PROXY) return {};
+  const url = `${OMDB_PROXY.replace(/\/$/, '')}?i=${encodeURIComponent(imdbId)}`;
+  const headers = {};
+  if (SB_ANON) {
+    headers.apikey = SB_ANON;
+    headers.Authorization = `Bearer ${SB_ANON}`;
+  }
+  const res = await fetch(url, { headers });
+  if (res.ok === false) return {};
+  const data = await res.json();
+  if (data?.Response === 'False') return {};
+  return data;
+}
+
+export async function fetchDetails(tmdbId, mediaType = 'movie') {
+  const type = mediaType === 'tv' ? 'tv' : 'movie';
+  const cacheKey = `${type}:${tmdbId}`;
+  if (detailCache.has(cacheKey)) return detailCache.get(cacheKey);
+
+  const detailData = await tmdbFetch(`/${type}/${tmdbId}`, {
+    append_to_response: 'external_ids,watch/providers',
+  });
 
   const imdbId = detailData.external_ids?.imdb_id;
-  let omdbData = {};
-  let rotten = null;
-  let rtSource = null;
+  const omdbData = await fetchOmdb(imdbId).catch(() => ({}));
 
-  // Try OMDb first (existing method)
-  if (imdbId && OMDB_PROXY) {
-    try {
-      const url = `${OMDB_PROXY.replace(/\/$/, '')}?i=${encodeURIComponent(imdbId)}&tomatoes=true`;
-      const headers = {};
-      if (SB_ANON) {
-        headers.apikey = SB_ANON;
-        headers.Authorization = `Bearer ${SB_ANON}`;
-      }
-      const omdbRes = await fetch(url, { headers });
-      if (omdbRes.ok) {
-        omdbData = await omdbRes.json();
-        
-        // Check if OMDb request was successful
-        if (omdbData.Response !== 'False') {
-          const rt = omdbData?.Ratings?.find((r) => r.Source === 'Rotten Tomatoes')?.Value;
-          rotten = rt ? parseInt(rt.replace('%', ''), 10) : null;
-          
-          if (rotten !== null) {
-            console.log(`✅ OMDb RT score found: ${rotten}%`);
-            rtSource = 'omdb';
-          }
-        } else {
-          console.log(`⚠️ OMDb returned error: ${omdbData.Error}`);
-        }
-      } else {
-        console.log(`⚠️ OMDb proxy failed: ${omdbRes.status} ${omdbRes.statusText}`);
-      }
-    } catch (error) {
-      handleDevError(error, 'OMDb API');
-      console.log('⚠️ OMDb error, will try RT scraper fallback...');
-    }
-  }
-
-  // If OMDb failed to get RT score, try scraping as fallback
-  if (rotten === null) {
-    try {
-      const movieTitle = detailData.title || detailData.name;
-      const releaseYear = detailData.release_date || detailData.first_air_date;
-      const year = releaseYear ? new Date(releaseYear).getFullYear() : null;
-      
-      console.log(`🍅 Trying RT scraper fallback for: ${movieTitle}`);
-      const scrapedScores = await rtClient.getScores(movieTitle, year);
-      
-      if (scrapedScores?.tomatometer !== null) {
-        // Prefer critic Tomatometer when available
-        rotten = scrapedScores.tomatometer;
-        rtSource = (scrapedScores.source || 'scraped') + ' (tomatometer)';
-        console.log(`✅ ${rtSource === 'mock (tomatometer)' ? 'Mock' : 'Scraped'} RT tomatometer found: ${rotten}%`);
-      } else if (scrapedScores?.audience_score !== null) {
-        // Fallback to audience score if tomatometer is unavailable
-        rotten = scrapedScores.audience_score;
-        rtSource = (scrapedScores.source || 'scraped') + ' (audience)';
-        console.log(`✅ ${rtSource === 'mock (audience)' ? 'Mock' : 'Scraped'} RT audience score found: ${rotten}%`);
-      } else {
-        console.log(`⚠️ RT scraper also failed for: ${movieTitle}`);
-      }
-    } catch (error) {
-      handleDevError(error, 'RT Scraper Fallback');
-    }
-  }
-
-  const providers = extractProviders(detailData['watch/providers']);
-  
   let series = null;
   if (detailData.belongs_to_collection) {
     series = {
@@ -234,24 +161,21 @@ export async function fetchDetails(tmdbId) {
     };
   }
 
-  return {
+  const details = {
     id: detailData.id,
     title: detailData.title || detailData.name,
     artwork: detailData.poster_path ? `https://image.tmdb.org/t/p/w500${detailData.poster_path}` : null,
     releaseDate: detailData.release_date || detailData.first_air_date || null,
     runtime: detailData.runtime || detailData.episode_run_time?.[0] || null,
-    genres: (detailData.genres || []).map((g) => g.name),
+    genres: (detailData.genres || []).map((genre) => genre.name),
     ratings: {
       tmdb: detailData.vote_average,
-      rottenTomatoes: rotten,
-      rtSource: rtSource, // Track where RT score came from
+      imdb: parseImdb(omdbData),
     },
-    streaming: providers,
+    streaming: extractProviders(detailData['watch/providers']),
     series,
-    mediaType,
+    mediaType: type,
   };
-  } catch (error) {
-    console.warn('Failed to fetch details:', error.message);
-    throw error;
-  }
+  detailCache.set(cacheKey, details);
+  return details;
 }

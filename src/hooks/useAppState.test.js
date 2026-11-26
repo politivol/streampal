@@ -4,7 +4,6 @@ import { useAppState } from '../hooks/useAppState.js';
 
 // Mock the API functions
 vi.mock('../lib/api.js', () => ({
-  fetchTrending: vi.fn(),
   fetchDetails: vi.fn(),
   searchTitles: vi.fn(),
   discoverTitles: vi.fn(),
@@ -20,9 +19,7 @@ vi.mock('../lib/supabaseClient.js', () => ({
     },
     from: vi.fn(() => ({
       select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          eq: vi.fn(() => Promise.resolve({ data: [] })),
-        })),
+        eq: vi.fn(() => Promise.resolve({ data: [] })),
       })),
     })),
   },
@@ -39,10 +36,9 @@ Object.defineProperty(window, 'sessionStorage', {
 });
 
 // Import mocked modules
-import { fetchTrending, fetchDetails, searchTitles, discoverTitles } from '../lib/api.js';
+import { fetchDetails, searchTitles, discoverTitles } from '../lib/api.js';
 import { supabase } from '../lib/supabaseClient.js';
 
-const mockFetchTrending = vi.mocked(fetchTrending);
 const mockFetchDetails = vi.mocked(fetchDetails);
 const mockSearchTitles = vi.mocked(searchTitles);
 const mockDiscoverTitles = vi.mocked(discoverTitles);
@@ -58,7 +54,7 @@ describe('useAppState', () => {
     });
     
     // Set up default mock implementations
-    mockFetchTrending.mockResolvedValue([
+    mockDiscoverTitles.mockResolvedValue([
       { id: 1, title: 'Movie 1', artwork: null, mediaType: 'movie' },
       { id: 2, title: 'Movie 2', artwork: null, mediaType: 'movie' }
     ]);
@@ -70,7 +66,7 @@ describe('useAppState', () => {
       genres: [],
       releaseDate: '2023-01-01',
       streaming: [],
-      ratings: { tmdb: 7.5, rottenTomatoes: 80 }
+      ratings: { tmdb: 7.5, imdb: 8 }
     });
     mockSearchTitles.mockResolvedValue([
       { id: 1, title: 'Search Result', artwork: null, mediaType: 'movie' }
@@ -86,7 +82,7 @@ describe('useAppState', () => {
 
   it('initializes with default state', async () => {
     // Override mocks to return empty results for initial state test
-    mockFetchTrending.mockResolvedValue([]);
+    mockDiscoverTitles.mockResolvedValue([]);
     mockFetchDetails.mockResolvedValue(null);
     
     const { result } = renderHook(() => useAppState());
@@ -118,7 +114,7 @@ describe('useAppState', () => {
       await new Promise(resolve => setTimeout(resolve, 0));
     });
 
-    expect(result.current.seenIds).toEqual(new Set([1, 2]));
+    expect(result.current.seenIds).toEqual(new Set(['1', '2']));
   });
 
   it('loads seen items from Supabase when session exists', async () => {
@@ -126,10 +122,11 @@ describe('useAppState', () => {
     mockSupabase.auth.getSession.mockResolvedValue({ data: { session: mockSession } });
     mockSupabase.from.mockReturnValue({
       select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          eq: vi.fn(() => Promise.resolve({
-            data: [{ tmdb_id: 1 }, { tmdb_id: 2 }]
-          }))
+        eq: vi.fn(() => Promise.resolve({
+          data: [
+            { tmdb_id: '1', list: 'seen' },
+            { tmdb_id: '2', list: 'seen' },
+          ]
         }))
       }))
     });
@@ -140,12 +137,12 @@ describe('useAppState', () => {
       await new Promise(resolve => setTimeout(resolve, 0));
     });
 
-    expect(result.current.seenIds).toEqual(new Set([1, 2]));
+    expect(result.current.seenIds).toEqual(new Set(['1', '2']));
   });
 
   it('handles search functionality', async () => {
     // Override mocks for this specific test
-    mockFetchTrending.mockResolvedValue([]);
+    mockDiscoverTitles.mockResolvedValue([]);
     mockFetchDetails.mockResolvedValue(null);
     mockSearchTitles.mockResolvedValue([
       { id: 1, title: 'Search Result 1', artwork: 'poster1.jpg', mediaType: 'movie' }
@@ -156,7 +153,7 @@ describe('useAppState', () => {
       artwork: 'poster1.jpg',
       releaseDate: '2023-01-01',
       genres: ['Action'],
-      ratings: { tmdb: 8.5, rottenTomatoes: 85 },
+      ratings: { tmdb: 8.5, imdb: 8.5 },
       streaming: ['Netflix'],
       series: null,
       mediaType: 'movie'
@@ -188,7 +185,7 @@ describe('useAppState', () => {
       artwork: 'poster.jpg',
       releaseDate: '2023-01-01',
       genres: ['Action'],
-      ratings: { tmdb: 8.5, rottenTomatoes: 85 },
+      ratings: { tmdb: 8.5, imdb: 8.5 },
       streaming: ['Netflix'],
       series: null,
       mediaType: 'movie'
@@ -208,7 +205,11 @@ describe('useAppState', () => {
       await result.current.applyFilters(testFilters);
     });
 
-    expect(mockDiscoverTitles).toHaveBeenCalledWith(testFilters);
+    expect(mockDiscoverTitles).toHaveBeenCalledWith(expect.objectContaining({
+      genres: ['Action'],
+      providers: ['Netflix'],
+      isGeneralSearch: false,
+    }));
     expect(result.current.showFilters).toBe(false);
   });
 
@@ -220,8 +221,8 @@ describe('useAppState', () => {
     });
 
     expect(result.current.results).toEqual([]);
-    expect(result.current.seenIds.has(123)).toBe(true);
-    expect(result.current.pinnedIds.has(123)).toBe(false);
+    expect(result.current.seenIds.has('123')).toBe(true);
+    expect(result.current.pinnedIds.has('123')).toBe(false);
   });
 
   it('handles pin toggling', () => {
@@ -231,13 +232,13 @@ describe('useAppState', () => {
       result.current.togglePin(456);
     });
 
-    expect(result.current.pinnedIds.has(456)).toBe(true);
+    expect(result.current.pinnedIds.has('456')).toBe(true);
 
     act(() => {
       result.current.togglePin(456);
     });
 
-    expect(result.current.pinnedIds.has(456)).toBe(false);
+    expect(result.current.pinnedIds.has('456')).toBe(false);
   });
 
   it('handles logout', async () => {

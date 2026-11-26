@@ -1,20 +1,15 @@
-import { useEffect, useState, Suspense } from 'react';
-import SeenList from './components/SeenList.jsx';
+import { Suspense } from 'react';
 import Header from './components/Header.jsx';
-import FilterPanel from './components/FilterPanel.jsx';
 import ResultsList from './components/ResultsList.jsx';
-import SeriesPanel from './components/SeriesPanel.jsx';
-import AuthPanel from './components/AuthPanel.jsx';
 import DevStatus from './components/DevStatus.jsx';
+import {
+  LazyAuthPanel,
+  LazyFilterPanel,
+  LazySeenList,
+  LazySeriesPanel,
+} from './lib/lazyComponents.js';
 import { useAppState } from './hooks/useAppState.js';
 
-// Lazy load heavier components
-const LazyResultsList = ResultsList;
-const LazySeriesPanel = SeriesPanel;
-const LazyAuthPanel = AuthPanel;
-const LazySeenList = SeenList;
-
-// Loading component for lazy-loaded components
 const ComponentSpinner = () => (
   <div className="panel">
     <div className="loading-spinner">
@@ -32,9 +27,9 @@ function App() {
     filters,
     results,
     pinnedIds,
-    seenIds,
     series,
     loading,
+    error,
     resultsTitle,
     setSession,
     setShowFilters,
@@ -60,14 +55,16 @@ function App() {
         onLogout={handleLogout}
         onSearch={handleSearch}
       />
-      {showFilters && (
-        <FilterPanel
-          filters={filters}
-          onApply={applyFilters}
-          onClose={() => setShowFilters(false)}
-          onReset={resetFilters}
-        />
-      )}
+      <Suspense fallback={<ComponentSpinner />}>
+        {showFilters && (
+          <LazyFilterPanel
+            filters={filters}
+            onApply={applyFilters}
+            onClose={() => setShowFilters(false)}
+            onReset={resetFilters}
+          />
+        )}
+      </Suspense>
       {loading && (
         <div className="panel">
           <div className="loading-spinner">
@@ -84,8 +81,13 @@ function App() {
           </ul>
         </div>
       )}
-      {!loading && results.length > 0 && (
-        <LazyResultsList
+      {!loading && error && (
+        <div className="panel">
+          <p>{error}</p>
+        </div>
+      )}
+      {!loading && !error && results.length > 0 && (
+        <ResultsList
           results={results}
           title={resultsTitle}
           session={session}
@@ -93,10 +95,10 @@ function App() {
           onSeen={handleSeen}
           onPin={togglePin}
           onRollAgain={rollAgain}
-          onShowSeries={(s) => setSeries(s)}
+          onShowSeries={(next) => setSeries(next)}
         />
       )}
-      {!loading && results.length === 0 && (
+      {!loading && !error && results.length === 0 && (
         <div className="panel">
           <p>No results found. Try adjusting your filters.</p>
         </div>
@@ -105,19 +107,16 @@ function App() {
         {series && <LazySeriesPanel series={series} onClose={() => setSeries(null)} />}
       </Suspense>
       <Suspense fallback={<ComponentSpinner />}>
-        {showSeen && (
-          <LazySeenList
-            session={session}
-            onClose={() => setShowSeen(false)}
-          />
-        )}
+        {showSeen && <LazySeenList session={session} onClose={() => setShowSeen(false)} />}
       </Suspense>
       <Suspense fallback={<ComponentSpinner />}>
         {showAuth && (
           <LazyAuthPanel
-            onSession={(s) => {
-              setSession(s);
-              setShowAuth(false);
+            onSession={(next) => {
+              if (next) {
+                setSession(next);
+                setShowAuth(false);
+              }
             }}
             onClose={() => setShowAuth(false)}
           />

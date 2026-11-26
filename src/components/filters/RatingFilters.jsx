@@ -2,9 +2,9 @@ import React from 'react';
 
 export default function RatingFilters({
   minTmdb,
-  minRotten,
+  minImdb,
   onMinTmdbChange,
-  onMinRottenChange
+  onMinImdbChange
 }) {
   return (
     <>
@@ -26,17 +26,17 @@ export default function RatingFilters({
       </div>
       <div className="filter-group">
         <label>
-          Min Rotten Tomatoes
+          Min IMDb
           <div className="slider-group">
             <input
               type="range"
               min="0"
-              max="100"
-              step="1"
-              value={minRotten}
-              onChange={(e) => onMinRottenChange(parseInt(e.target.value, 10))}
+              max="10"
+              step="0.1"
+              value={minImdb}
+              onChange={(e) => onMinImdbChange(parseFloat(e.target.value))}
             />
-            <span>{minRotten}</span>
+            <span>{Number(minImdb).toFixed(1)}</span>
           </div>
         </label>
       </div>

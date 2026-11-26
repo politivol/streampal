@@ -1,6 +1,14 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const originalFetch = global.fetch;
+
+beforeEach(() => {
+  vi.stubEnv('VITE_TMDB_API_KEY', 'test-key');
+  vi.stubEnv('VITE_SUPABASE_URL', 'https://example.supabase.co');
+  vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'sb-anon-key');
+  vi.stubEnv('VITE_SITE_URL', 'http://localhost:5173');
+  vi.stubEnv('VITE_GOOGLE_CLIENT_ID', 'google-client');
+});
 
 afterEach(() => {
   global.fetch = originalFetch;
@@ -8,182 +16,127 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-describe('fetchTrending', () => {
-  it('fetches and normalizes trending data', async () => {
+describe('searchTitles', () => {
+  it('normalizes movie search results', async () => {
     vi.resetModules();
-    const { fetchTrending } = await import('./api');
-
-    const mockResponse = {
-      results: [
-        { id: 1, title: 'Movie', poster_path: '/p.jpg', media_type: 'movie' },
-        { id: 2, name: 'Show', poster_path: null, media_type: 'tv' }
-      ]
-    };
-    const fetchMock = vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve(mockResponse) }));
+    const { searchTitles } = await import('./api');
+    const fetchMock = vi.fn(() => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({
+        results: [
+          { id: 1, title: 'Movie', poster_path: '/p.jpg' },
+          { id: 2, name: 'Show', poster_path: null },
+        ],
+      }),
+    }));
     global.fetch = fetchMock;
 
-    const result = await fetchTrending('movie');
+    const result = await searchTitles('matrix', 'movie');
 
-    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('/trending/movie/week'));
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('/search/movie?'));
+    expect(fetchMock.mock.calls[0][0]).toContain('query=matrix');
     expect(result).toEqual([
       {
         id: 1,
         title: 'Movie',
         artwork: 'https://image.tmdb.org/t/p/w500/p.jpg',
-        mediaType: 'movie'
+        mediaType: 'movie',
       },
       {
         id: 2,
         title: 'Show',
         artwork: null,
-        mediaType: 'tv'
-      }
+        mediaType: 'movie',
+      },
     ]);
   });
 });
 
 describe('fetchDetails', () => {
-  it('combines TMDB and OMDb data and normalizes output', async () => {
+  it('uses the requested media type and reads the IMDb score', async () => {
     vi.resetModules();
     vi.stubEnv('VITE_OMDB_PROXY_URL', 'https://example.com/omdb-proxy');
-    vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'sb-anon-key');
     const { fetchDetails } = await import('./api');
 
     const tmdbData = {
       id: 1,
-      title: 'Movie 1',
+      name: 'Show 1',
       poster_path: '/p1.jpg',
-      genres: [{ id: 1, name: 'Action' }],
+      genres: [{ id: 1, name: 'Drama' }],
       vote_average: 8.3,
       external_ids: { imdb_id: 'tt123' },
       'watch/providers': {
         results: {
           US: {
             flatrate: [
-              { provider_name: 'Netflix with ads' },
-              { provider_name: 'Amazon Prime Video' },
-              { provider_name: 'HBO Max' },
-              { provider_name: 'Hulu' },
-              { provider_name: 'Obscure Provider' }
-            ]
-          }
-        }
+              { provider_name: 'Netflix' },
+              { provider_name: 'Obscure Provider' },
+            ],
+          },
+        },
       },
-      belongs_to_collection: null
+      belongs_to_collection: null,
     };
     const omdbData = {
-      Title: 'Movie 1',
-      Ratings: [{ Source: 'Rotten Tomatoes', Value: '88%' }],
+      Title: 'Show 1',
+      Ratings: [{ Source: 'Internet Movie Database', Value: '8.1/10' }],
       Type: 'series',
-      totalSeasons: '2'
+      totalSeasons: '2',
     };
 
-    const fetchMock = vi
-      .fn()
+    const fetchMock = vi.fn()
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(tmdbData) })
       .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(omdbData) });
-
     global.fetch = fetchMock;
 
-    const result = await fetchDetails(1);
+    const result = await fetchDetails(1, 'tv');
 
-    expect(fetchMock).toHaveBeenNthCalledWith(1, expect.stringContaining('/movie/1'));
+    expect(fetchMock).toHaveBeenNthCalledWith(1, expect.stringContaining('/tv/1?'));
+    expect(fetchMock.mock.calls[0][0]).not.toContain('/movie/1');
     expect(fetchMock).toHaveBeenNthCalledWith(
       2,
-      expect.stringContaining('https://example.com/omdb-proxy?i=tt123&tomatoes=true'),
+      expect.stringContaining('https://example.com/omdb-proxy?i=tt123'),
       expect.anything()
     );
-
-    expect(result).toEqual({
-      id: 1,
-      title: 'Movie 1',
-      artwork: 'https://image.tmdb.org/t/p/w500/p1.jpg',
-      releaseDate: null,
-      runtime: null,
-      genres: ['Action'],
-      ratings: { tmdb: 8.3, rottenTomatoes: 88, rtSource: 'omdb' },
-      streaming: ['Netflix', 'Prime Video', 'Max', 'Hulu'],
-      series: { name: 'Movie 1', totalSeasons: '2', imdbId: 'tt123', type: 'omdb' },
-      mediaType: 'movie'
+    expect(fetchMock.mock.calls[1][0]).not.toContain('tomatoes=true');
+    expect(result.ratings).toEqual({ tmdb: 8.3, imdb: 8.1 });
+    expect(result.mediaType).toBe('tv');
+    expect(result.streaming).toEqual(['Netflix']);
+    expect(result.series).toEqual({
+      name: 'Show 1',
+      totalSeasons: '2',
+      imdbId: 'tt123',
+      type: 'omdb',
     });
-  });
-
-  it('uses RT scraper tomatometer when OMDb lacks RT rating', async () => {
-    vi.resetModules();
-    vi.stubEnv('VITE_OMDB_PROXY_URL', 'https://example.com/omdb-proxy');
-    vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'sb-anon-key');
-
-    // Spy on rtClient.getScores to return both scores
-    const rtModule = await import('./rt-client.js');
-    vi.spyOn(rtModule.rtClient, 'getScores').mockResolvedValue({
-      tomatometer: 75,
-      audience_score: 80,
-      source: 'scraped'
-    });
-
-    const { fetchDetails } = await import('./api');
-
-    const tmdbData = {
-      id: 2,
-      title: 'Movie 2',
-      poster_path: null,
-      genres: [],
-      vote_average: 7.1,
-      external_ids: { imdb_id: 'tt456' },
-      'watch/providers': { results: {} },
-      belongs_to_collection: null
-    };
-
-    // OMDb returns no Rotten Tomatoes rating
-    const omdbData = { Response: 'True', Ratings: [] };
-
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(tmdbData) })
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(omdbData) });
-
-    global.fetch = fetchMock;
-
-    const result = await fetchDetails(2);
-
-    expect(result.ratings.rottenTomatoes).toBe(75);
-    expect(result.ratings.rtSource).toContain('tomatometer');
   });
 });
 
 describe('discoverTitles', () => {
-  it('builds discover query with filters', async () => {
+  it('sends genre, provider, rating, and year filters to TMDB', async () => {
     vi.resetModules();
-    vi.spyOn(Math, 'random').mockReturnValue(0.5);
     const { discoverTitles } = await import('./api');
 
-    const fetchMock = vi
-      .fn()
-      // genres list
+    const fetchMock = vi.fn()
       .mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ genres: [{ id: 28, name: 'Action' }] })
+        json: () => Promise.resolve({ genres: [{ id: 28, name: 'Action' }] }),
       })
-      // providers list
       .mockResolvedValueOnce({
         ok: true,
-        json: () =>
-          Promise.resolve({ results: [{ provider_name: 'Netflix', provider_id: 8 }] })
+        json: () => Promise.resolve({ results: [{ provider_name: 'Netflix', provider_id: 8 }] }),
       })
-      // discover results
       .mockResolvedValueOnce({
         ok: true,
-        json: () =>
-          Promise.resolve({ results: [{ id: 1, title: 'Movie', poster_path: '/p.jpg' }] })
+        json: () => Promise.resolve({ results: [{ id: 1, title: 'Movie', poster_path: '/p.jpg' }] }),
       });
-
     global.fetch = fetchMock;
 
     const result = await discoverTitles({
       mediaType: 'movie',
       genres: ['Action'],
       providers: ['Netflix'],
-      minTmdb: 7
+      minTmdb: 7,
+      releaseDate: 'past_year',
     });
 
     const url = fetchMock.mock.calls[2][0];
@@ -191,14 +144,7 @@ describe('discoverTitles', () => {
     expect(url).toContain('with_genres=28');
     expect(url).toContain('with_watch_providers=8');
     expect(url).toContain('vote_average.gte=7');
-
-    expect(result).toEqual([
-      {
-        id: 1,
-        title: 'Movie',
-        artwork: 'https://image.tmdb.org/t/p/w500/p.jpg',
-        mediaType: 'movie'
-      }
-    ]);
+    expect(url).toContain('primary_release_date.gte=');
+    expect(result[0]).toMatchObject({ id: 1, title: 'Movie', mediaType: 'movie' });
   });
 });
